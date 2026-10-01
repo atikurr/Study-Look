@@ -18,43 +18,88 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
-// Allowed origins come from the CLIENT_URL environment variable
-// (comma-separated). Localhost is always allowed for development.
+// ==========================================
+// ALLOWED CORS ORIGINS
+// ==========================================
+
 const allowedOrigins = [
   ...(process.env.CLIENT_URL || "").split(","),
   "http://localhost:5173",
+  "https://study-look.vercel.app",
 ]
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+console.log("Allowed CORS origins:", allowedOrigins);
+
+// ==========================================
+// CORS
+// ==========================================
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Same-origin requests and tools like Postman send no Origin header
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests without Origin
+      // (Postman, server-to-server, etc.)
+      if (!origin) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.error(
+        "Blocked CORS origin:",
+        origin
+      );
+
+      return callback(
+        new Error("Not allowed by CORS")
+      );
     },
+
     credentials: true,
   })
 );
 
+// ==========================================
+// MIDDLEWARE
+// ==========================================
+
 app.use(express.json());
 app.use(cookieParser());
 
-// Custom auth routes
+// ==========================================
+// CUSTOM AUTH ROUTES
+// ==========================================
+
 app.use("/api/auth", authRoutes);
 
-// Better Auth routes
-app.all("/api/auth/*splat", toNodeHandler(auth));
+// ==========================================
+// BETTER AUTH ROUTES
+// ==========================================
 
-// Room routes
+app.all(
+  "/api/auth/*splat",
+  toNodeHandler(auth)
+);
+
+// ==========================================
+// ROOM ROUTES
+// ==========================================
+
 app.use("/api/rooms", roomRoutes);
 
-// Booking routes
+// ==========================================
+// BOOKING ROUTES
+// ==========================================
+
 app.use("/api/bookings", bookingRoutes);
+
+// ==========================================
+// ROOT
+// ==========================================
 
 app.get("/", (req, res) => {
   res.json({
@@ -63,6 +108,12 @@ app.get("/", (req, res) => {
   });
 });
 
+// ==========================================
+// START SERVER
+// ==========================================
+
 app.listen(PORT, () => {
-  console.log(`StudyNook server running on port ${PORT}`);
+  console.log(
+    `StudyNook server running on port ${PORT}`
+  );
 });
