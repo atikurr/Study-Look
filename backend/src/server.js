@@ -18,9 +18,25 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
+// Allowed origins come from the CLIENT_URL environment variable
+// (comma-separated). Localhost is always allowed for development.
+const allowedOrigins = [
+  ...(process.env.CLIENT_URL || "").split(","),
+  "http://localhost:5173",
+]
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Same-origin requests and tools like Postman send no Origin header
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );

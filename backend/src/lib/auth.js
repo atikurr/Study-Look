@@ -9,6 +9,14 @@ const client = new MongoClient(process.env.MONGODB_URI);
 
 const db = client.db("studynook");
 
+// CLIENT_URL can hold one or more comma-separated origins
+const trustedOrigins = [
+  ...(process.env.CLIENT_URL || "").split(","),
+  "http://localhost:5173",
+]
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
@@ -16,7 +24,7 @@ const auth = betterAuth({
 
   baseURL: process.env.BETTER_AUTH_URL,
 
-  trustedOrigins: ["http://localhost:5173"],
+  trustedOrigins,
 
   emailAndPassword: {
     enabled: true,
