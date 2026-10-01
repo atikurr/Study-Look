@@ -7,6 +7,15 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
+// HH:MM in 24-hour format, zero padded (e.g. 08:00)
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Convert HH:MM to minutes
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
 // CREATE BOOKING
 router.post("/", authMiddleware, async (req, res) => {
   try {
@@ -64,25 +73,21 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
-    // Convert time to minutes
-    const timeToMinutes = (time) => {
-      const [hours, minutes] = time.split(":").map(Number);
-      return hours * 60 + minutes;
-    };
-
-    const startMinutes = timeToMinutes(startTime);
-    const endMinutes = timeToMinutes(endTime);
-
-    // Validate time
+    // Time format validation
     if (
-      Number.isNaN(startMinutes) ||
-      Number.isNaN(endMinutes)
+      typeof startTime !== "string" ||
+      typeof endTime !== "string" ||
+      !TIME_PATTERN.test(startTime) ||
+      !TIME_PATTERN.test(endTime)
     ) {
       return res.status(400).json({
         success: false,
         message: "Invalid booking time.",
       });
     }
+
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
 
     // Booking hours: 08:00 - 20:00
     if (
@@ -113,24 +118,15 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
-    // Conflict detection
-    const existingBookings = await Booking.find({
+    const conflictingBooking = await Booking.findOne({
       roomId,
       bookingDate,
       status: "confirmed",
+      startTime: { $lt: endTime },
+      endTime: { $gt: startTime },
     });
 
-    const hasConflict = existingBookings.some((booking) => {
-      const existingStart = timeToMinutes(booking.startTime);
-      const existingEnd = timeToMinutes(booking.endTime);
-
-      return (
-        startMinutes < existingEnd &&
-        endMinutes > existingStart
-      );
-    });
-
-    if (hasConflict) {
+    if (conflictingBooking) {
       return res.status(409).json({
         success: false,
         message: "This room is already booked for the selected time.",
@@ -238,6 +234,13 @@ router.get("/room/:roomId", async (req, res) => {
 // CANCEL BOOKING
 router.patch("/:id/cancel", authMiddleware, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking ID.",
+      });
+    }
+
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -258,6 +261,19 @@ router.patch("/:id/cancel", authMiddleware, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Booking is already cancelled.",
+      });
+    }
+
+    // Only today's or future bookings can be cancelled
+    const bookingDate = new Date(`${booking.bookingDate}T00:00:00`);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    if (bookingDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: "Past bookings cannot be cancelled.",
       });
     }
 
