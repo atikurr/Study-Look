@@ -1,55 +1,123 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, Clock3, MapPin, X } from "lucide-react";
+import {
+  CalendarDays,
+  Clock3,
+  MapPin,
+  Users,
+  XCircle,
+  CheckCircle2,
+  ArrowRight,
+  RefreshCw,
+  AlertTriangle,
+  DoorOpen,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cancellingId, setCancellingId] = useState(null);
+  const [error, setError] = useState("");
+  const [cancelBookingId, setCancelBookingId] =
+    useState(null);
+  const [cancelLoading, setCancelLoading] =
+    useState(false);
 
-  useEffect(() => {
-    const loadBookings = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/bookings/my-bookings",
-          {
-            credentials: "include",
-          }
-        );
+  // ==============================
+  // FETCH BOOKINGS
+  // ==============================
 
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          throw new Error(data.message || "Failed to load bookings.");
-        }
-
-        setBookings(data.bookings);
-      } catch (error) {
-        console.error("My bookings error:", error);
-        toast.error(error.message || "Failed to load bookings.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadBookings();
-  }, []);
-
-  const handleCancel = async (bookingId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this booking?"
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
+  const fetchBookings = async () => {
     try {
-      setCancellingId(bookingId);
+      setLoading(true);
+      setError("");
 
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${bookingId}/cancel`,
+        "http://localhost:5000/api/bookings/my-bookings",
+        {
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || "Failed to fetch bookings"
+        );
+      }
+
+      setBookings(
+        Array.isArray(data.bookings)
+          ? data.bookings
+          : []
+      );
+    } catch (error) {
+      console.error(error);
+      setError(
+        error.message ||
+          "Failed to load your bookings."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  // ==============================
+  // FORMAT DATE
+  // ==============================
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+
+    const date = new Date(
+      `${dateString}T00:00:00`
+    );
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // ==============================
+  // FORMAT TIME
+  // ==============================
+
+  const formatTime = (time) => {
+    if (!time) return "";
+
+    const [hourString, minute] =
+      time.split(":");
+
+    const hour = Number(hourString);
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+
+    return `${displayHour}:${minute} ${suffix}`;
+  };
+
+  // ==============================
+  // CANCEL BOOKING
+  // ==============================
+
+  const handleCancel = async () => {
+    if (!cancelBookingId) return;
+
+    try {
+      setCancelLoading(true);
+
+      const loadingToast = toast.loading(
+        "Cancelling booking..."
+      );
+
+      const response = await fetch(
+        `http://localhost:5000/api/bookings/${cancelBookingId}/cancel`,
         {
           method: "PATCH",
           credentials: "include",
@@ -58,176 +126,454 @@ function MyBookings() {
 
       const data = await response.json();
 
+      toast.dismiss(loadingToast);
+
       if (!response.ok || !data.success) {
-        toast.error(data.message || "Failed to cancel booking.");
+        toast.error(
+          data.message ||
+            "Failed to cancel booking"
+        );
         return;
       }
 
-      setBookings((previous) =>
-        previous.map((booking) =>
-          booking._id === bookingId
-            ? { ...booking, status: "cancelled" }
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking._id === cancelBookingId
+            ? {
+                ...booking,
+                status: "cancelled",
+              }
             : booking
         )
       );
 
-      toast.success("Booking cancelled successfully.");
+      toast.success(
+        "Booking cancelled successfully"
+      );
+
+      setCancelBookingId(null);
     } catch (error) {
-      console.error("Cancel booking error:", error);
-      toast.error("Something went wrong.");
+      console.error(error);
+
+      toast.error(
+        "Something went wrong. Please try again."
+      );
     } finally {
-      setCancellingId(null);
+      setCancelLoading(false);
     }
   };
 
-  return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
-            Dashboard
-          </p>
+  // ==============================
+  // LOADING
+  // ==============================
 
-          <h1 className="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">
-            My Bookings
-          </h1>
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="h-8 w-48 animate-pulse rounded bg-slate-200" />
 
-          <p className="mt-2 text-slate-500">
-            View and manage your study room bookings.
-          </p>
-        </div>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            {Array.from({ length: 5 }).map(
+              (_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 border-b border-slate-100 p-4 last:border-0"
+                >
+                  <div className="h-16 w-20 animate-pulse rounded-xl bg-slate-200" />
 
-        {/* Loading */}
-        {loading ? (
-          <div className="flex min-h-60 items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
+                    <div className="h-3 w-64 animate-pulse rounded bg-slate-100" />
+                  </div>
+
+                  <div className="h-8 w-20 animate-pulse rounded-full bg-slate-100" />
+                </div>
+              )
+            )}
           </div>
-        ) : bookings.length === 0 ? (
-          /* Empty State */
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-            <h2 className="text-2xl font-bold text-slate-900">
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50">
+      {/* ==============================
+          HEADER
+      ============================== */}
+
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Dashboard
+              </p>
+
+              <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                My Bookings
+              </h1>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Manage your study room reservations.
+              </p>
+            </div>
+
+            <Link
+              to="/rooms"
+              className="inline-flex w-fit items-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
+            >
+              Book a Room
+              <ArrowRight size={15} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ==============================
+          CONTENT
+      ============================== */}
+
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* ERROR */}
+
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-white p-8 text-center">
+            <XCircle className="mx-auto text-red-500" />
+
+            <h2 className="mt-3 font-semibold text-slate-900">
+              Unable to load bookings
+            </h2>
+
+            <p className="mt-1 text-sm text-slate-500">
+              {error}
+            </p>
+
+            <button
+              onClick={fetchBookings}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+            >
+              <RefreshCw size={15} />
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* EMPTY */}
+
+        {!error && bookings.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
+              <CalendarDays
+                size={22}
+                className="text-slate-500"
+              />
+            </div>
+
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">
               No bookings yet
             </h2>
 
-            <p className="mt-2 text-slate-500">
-              You haven't booked any study rooms yet.
+            <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
+              Find a study room and make your first
+              reservation.
             </p>
 
             <Link
               to="/rooms"
-              className="mt-6 inline-flex rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-800"
+              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
             >
               Explore Rooms
+              <ArrowRight size={15} />
             </Link>
           </div>
-        ) : (
-          /* Booking List */
-          <div className="space-y-5">
+        )}
+
+        {/* ==============================
+            BOOKING LIST
+        ============================== */}
+
+        {!error && bookings.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {/* Desktop Header */}
+
+            <div className="hidden border-b border-slate-200 bg-slate-50 px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 md:grid md:grid-cols-[2fr_1.4fr_1.2fr_100px_130px] md:items-center md:gap-5">
+              <span>Room</span>
+              <span>Date & Time</span>
+              <span>Location</span>
+              <span>Status</span>
+              <span className="text-right">
+                Action
+              </span>
+            </div>
+
             {bookings.map((booking) => {
               const room = booking.roomId;
+
+              const isCancelled =
+                booking.status === "cancelled";
 
               return (
                 <div
                   key={booking._id}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                  className="border-b border-slate-100 last:border-0"
                 >
-                  <div className="flex flex-col md:flex-row">
-                    {/* Image */}
-                    <div className="h-56 md:h-auto md:w-64">
-                      {room?.image ? (
-                        <img
-                          src={room.image}
-                          alt={room.roomName}
-                          className="h-full w-full object-cover"
+                  {/* ==========================
+                      DESKTOP ROW
+                  ========================== */}
+
+                  <div className="hidden px-5 py-4 transition hover:bg-slate-50 md:grid md:grid-cols-[2fr_1.4fr_1.2fr_100px_130px] md:items-center md:gap-5">
+                    {/* ROOM */}
+
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="h-14 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                        {room?.image ? (
+                          <img
+                            src={room.image}
+                            alt={
+                              room.roomName ||
+                              "Study room"
+                            }
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display =
+                                "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <DoorOpen
+                              size={20}
+                              className="text-slate-400"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <Link
+                          to={
+                            room?._id
+                              ? `/rooms/${room._id}`
+                              : "#"
+                          }
+                          className="block truncate text-sm font-semibold text-slate-900 hover:text-blue-600"
+                        >
+                          {room?.roomName ||
+                            "Study Room"}
+                        </Link>
+
+                        <p className="mt-0.5 truncate text-xs text-slate-400">
+                          {room?.capacity || 0} seats
+                          {" · "}
+                          ${room?.hourlyRate || 0}
+                          /hr
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* DATE / TIME */}
+
+                    <div>
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                        <CalendarDays
+                          size={14}
+                          className="text-blue-500"
                         />
+                        {formatDate(
+                          booking.bookingDate
+                        )}
+                      </div>
+
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
+                        <Clock3 size={13} />
+
+                        {formatTime(
+                          booking.startTime
+                        )}{" "}
+                        -{" "}
+                        {formatTime(
+                          booking.endTime
+                        )}
+                      </div>
+                    </div>
+
+                    {/* LOCATION */}
+
+                    <div>
+                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                        <MapPin
+                          size={14}
+                          className="text-slate-400"
+                        />
+                        {room?.floor || "N/A"}
+                      </div>
+
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
+                        <Users size={13} />
+                        {room?.capacity || 0} people
+                      </div>
+                    </div>
+
+                    {/* STATUS */}
+
+                    <div>
+                      {isCancelled ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-600">
+                          <XCircle size={12} />
+                          Cancelled
+                        </span>
                       ) : (
-                        <div className="flex h-full items-center justify-center bg-slate-100 text-slate-400">
-                          No Image
-                        </div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
+                          <CheckCircle2 size={12} />
+                          Confirmed
+                        </span>
                       )}
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 p-6">
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <h2 className="text-2xl font-bold text-slate-900">
-                            {room?.roomName || "Room unavailable"}
-                          </h2>
+                    {/* ACTION */}
 
-                          <div className="mt-3 space-y-2 text-sm text-slate-600">
-                            <div className="flex items-center gap-2">
-                              <CalendarDays size={17} />
-                              {booking.bookingDate}
-                            </div>
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-sm font-bold text-slate-900">
+                        ${booking.totalCost}
+                      </span>
 
-                            <div className="flex items-center gap-2">
-                              <Clock3 size={17} />
-                              {booking.startTime} - {booking.endTime}
-                            </div>
-
-                            {room?.floor && (
-                              <div className="flex items-center gap-2">
-                                <MapPin size={17} />
-                                {room.floor}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <span
-                          className={`inline-flex w-fit rounded-full px-3 py-1 text-sm font-semibold ${
-                            booking.status === "confirmed"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-slate-100 text-slate-500"
-                          }`}
+                      {!isCancelled && (
+                        <button
+                          onClick={() =>
+                            setCancelBookingId(
+                              booking._id
+                            )
+                          }
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                          title="Cancel booking"
                         >
-                          {booking.status}
-                        </span>
+                          <XCircle size={17} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ==========================
+                      MOBILE ROW
+                  ========================== */}
+
+                  <div className="p-4 md:hidden">
+                    <div className="flex gap-3">
+                      {/* IMAGE */}
+
+                      <div className="h-16 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                        {room?.image ? (
+                          <img
+                            src={room.image}
+                            alt={
+                              room.roomName ||
+                              "Study room"
+                            }
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <DoorOpen
+                              size={20}
+                              className="text-slate-400"
+                            />
+                          </div>
+                        )}
                       </div>
 
-                      {/* Cost */}
-                      <div className="mt-6 border-t border-slate-200 pt-5">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-sm text-slate-500">
-                              Total Cost
-                            </p>
+                      {/* INFO */}
 
-                            <p className="mt-1 text-2xl font-bold text-slate-900">
-                              ${Number(booking.totalCost).toFixed(2)}
-                            </p>
-                          </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <Link
+                            to={
+                              room?._id
+                                ? `/rooms/${room._id}`
+                                : "#"
+                            }
+                            className="truncate text-sm font-semibold text-slate-900"
+                          >
+                            {room?.roomName ||
+                              "Study Room"}
+                          </Link>
 
-                          {booking.note && (
-                            <div className="max-w-md">
-                              <p className="text-sm text-slate-500">
-                                Note
-                              </p>
-
-                              <p className="mt-1 text-sm text-slate-700">
-                                {booking.note}
-                              </p>
-                            </div>
-                          )}
-
-                          {booking.status === "confirmed" && (
-                            <button
-                              type="button"
-                              onClick={() => handleCancel(booking._id)}
-                              disabled={cancellingId === booking._id}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                              <X size={17} />
-
-                              {cancellingId === booking._id
-                                ? "Cancelling..."
-                                : "Cancel Booking"}
-                            </button>
+                          {isCancelled ? (
+                            <span className="shrink-0 rounded-full bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
+                              Cancelled
+                            </span>
+                          ) : (
+                            <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600">
+                              Confirmed
+                            </span>
                           )}
                         </div>
+
+                        <p className="mt-1 text-xs text-slate-400">
+                          {room?.floor || "N/A"}
+                          {" · "}
+                          {room?.capacity || 0} seats
+                        </p>
                       </div>
+                    </div>
+
+                    {/* MOBILE DETAILS */}
+
+                    <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                          Date
+                        </p>
+
+                        <p className="mt-0.5 text-xs font-medium text-slate-700">
+                          {formatDate(
+                            booking.bookingDate
+                          )}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                          Time
+                        </p>
+
+                        <p className="mt-0.5 text-xs font-medium text-slate-700">
+                          {formatTime(
+                            booking.startTime
+                          )}{" "}
+                          -{" "}
+                          {formatTime(
+                            booking.endTime
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* MOBILE FOOTER */}
+
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+                      <span className="text-sm font-bold text-slate-900">
+                        ${booking.totalCost}
+                      </span>
+
+                      {!isCancelled ? (
+                        <button
+                          onClick={() =>
+                            setCancelBookingId(
+                              booking._id
+                            )
+                          }
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle size={14} />
+                          Cancel
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-400">
+                          No actions available
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -235,7 +581,65 @@ function MyBookings() {
             })}
           </div>
         )}
-      </div>
+      </section>
+
+      {/* ==============================
+          CONFIRMATION MODAL
+      ============================== */}
+
+      {cancelBookingId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <AlertTriangle size={21} />
+            </div>
+
+            <h2 className="mt-4 text-lg font-bold text-slate-900">
+              Cancel booking?
+            </h2>
+
+            <p className="mt-1.5 text-sm leading-6 text-slate-500">
+              This booking will be marked as
+              cancelled. Do you want to continue?
+            </p>
+
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                disabled={cancelLoading}
+                onClick={() =>
+                  setCancelBookingId(null)
+                }
+                className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Keep
+              </button>
+
+              <button
+                type="button"
+                disabled={cancelLoading}
+                onClick={handleCancel}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {cancelLoading ? (
+                  <>
+                    <RefreshCw
+                      size={14}
+                      className="animate-spin"
+                    />
+                    Cancelling
+                  </>
+                ) : (
+                  <>
+                    <XCircle size={14} />
+                    Cancel
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

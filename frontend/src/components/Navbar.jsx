@@ -26,16 +26,26 @@ function Navbar() {
 
   const profileRef = useRef(null);
 
+  // Background scroll lock when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [mobileOpen]);
+
   // Get current logged-in user
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/auth/me",
-          {
-            credentials: "include",
-          }
-        );
+        const response = await fetch("http://localhost:5000/api/auth/me", {
+          credentials: "include",
+        });
 
         if (response.ok) {
           const data = await response.json();
@@ -68,10 +78,7 @@ function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -80,13 +87,10 @@ function Navbar() {
     try {
       await authClient.signOut();
 
-      const response = await fetch(
-        "http://localhost:5000/api/auth/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const response = await fetch("http://localhost:5000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
       if (!response.ok) {
         toast.error("Logout failed");
@@ -111,7 +115,6 @@ function Navbar() {
     if (path === "/") {
       return location.pathname === "/";
     }
-
     return location.pathname.startsWith(path);
   };
 
@@ -120,8 +123,8 @@ function Navbar() {
     const active = isActive(path);
 
     return `
-      flex items-center gap-2 rounded-xl px-3.5 py-2.5
-      text-sm font-semibold transition-all duration-200
+      flex items-center gap-3 rounded-xl px-4 py-3
+      text-base font-semibold transition-all duration-200
       ${
         active
           ? "bg-blue-50 text-blue-600 shadow-sm"
@@ -131,331 +134,287 @@ function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
-        {/* Main Navbar */}
-        <div className="flex h-[76px] items-center justify-between">
-
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center"
-            onClick={() => setMobileOpen(false)}
-          >
-            <img
-              src="/assets/studyNook.png"
-              alt="StudyNook"
-              className="h-12 w-auto object-contain"
-            />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-1 lg:flex">
-
-            {/* Home */}
+    <>
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Main Navbar */}
+          <div className="flex h-[76px] items-center justify-between">
+            {/* Logo */}
             <Link
               to="/"
-              className={navLinkClass("/")}
+              className="flex items-center"
+              onClick={() => setMobileOpen(false)}
             >
-              <HomeIcon size={17} />
-              Home
+              <img
+                src="/assets/studyNook.png"
+                alt="StudyNook"
+                className="h-12 w-auto object-contain"
+              />
             </Link>
 
-            {/* Rooms */}
-            <Link
-              to="/rooms"
-              className={navLinkClass("/rooms")}
-            >
-              <DoorOpen size={17} />
-              Rooms
-            </Link>
+            {/* Desktop Navigation */}
+            <nav className="hidden items-center gap-1 lg:flex">
+              <Link to="/" className={navLinkClass("/")}>
+                <HomeIcon size={17} />
+                Home
+              </Link>
 
-            {/* About */}
-            <Link
-              to="/about"
-              className={navLinkClass("/about")}
-            >
-              <Info size={17} />
-              About
-            </Link>
+              <Link to="/rooms" className={navLinkClass("/rooms")}>
+                <DoorOpen size={17} />
+                Rooms
+              </Link>
 
-            {/* Private Navigation */}
-            {!loading && user && (
-              <>
-                {/* Add Room */}
-                <Link
-                  to="/add-room"
-                  className={navLinkClass("/add-room")}
-                >
-                  <PlusCircle size={17} />
-                  Add Room
-                </Link>
+              <Link to="/about" className={navLinkClass("/about")}>
+                <Info size={17} />
+                About
+              </Link>
 
-                {/* My Listings */}
-                <Link
-                  to="/my-listings"
-                  className={navLinkClass("/my-listings")}
-                >
-                  <ClipboardList size={17} />
-                  My Listings
-                </Link>
+              {!loading && user && (
+                <>
+                  <Link to="/add-room" className={navLinkClass("/add-room")}>
+                    <PlusCircle size={17} />
+                    Add Room
+                  </Link>
 
-                {/* My Bookings */}
-                <Link
-                  to="/my-bookings"
-                  className={navLinkClass("/my-bookings")}
-                >
-                  <CalendarDays size={17} />
-                  My Bookings
-                </Link>
-              </>
-            )}
-          </nav>
+                  <Link to="/my-listings" className={navLinkClass("/my-listings")}>
+                    <ClipboardList size={17} />
+                    My Listings
+                  </Link>
 
-          {/* Desktop Right Side */}
-          <div className="hidden items-center gap-3 md:flex">
+                  <Link to="/my-bookings" className={navLinkClass("/my-bookings")}>
+                    <CalendarDays size={17} />
+                    My Bookings
+                  </Link>
+                </>
+              )}
+            </nav>
 
-            {!loading && user ? (
-              <div
-                ref={profileRef}
-                className="relative"
-              >
-
-                {/* Profile Button */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setProfileOpen((previous) => !previous)
-                  }
-                  className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition ${
-                    profileOpen
-                      ? "border-blue-200 bg-blue-50"
-                      : "border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {user.image || user.photoURL ? (
-                    <img
-                      src={user.image || user.photoURL}
-                      alt={user.name || "User"}
-                      className="h-9 w-9 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-                      {user.name?.charAt(0)?.toUpperCase() || "U"}
-                    </div>
-                  )}
-
-                  <span className="max-w-28 truncate text-sm font-semibold text-slate-700">
-                    {user.name || "User"}
-                  </span>
-
-                  <ChevronDown
-                    size={16}
-                    className={`text-slate-500 transition ${
-                      profileOpen ? "rotate-180" : ""
+            {/* Desktop Right Side */}
+            <div className="hidden items-center gap-3 md:flex">
+              {!loading && user ? (
+                <div ref={profileRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setProfileOpen((previous) => !previous)}
+                    className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition ${
+                      profileOpen
+                        ? "border-blue-200 bg-blue-50"
+                        : "border-slate-200 hover:bg-slate-50"
                     }`}
-                  />
-                </button>
+                  >
+                    {user.image || user.photoURL ? (
+                      <img
+                        src={user.image || user.photoURL}
+                        alt={user.name || "User"}
+                        className="h-9 w-9 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+                        {user.name?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                    )}
 
-                {/* Profile Dropdown */}
-                {profileOpen && (
-                  <div className="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                    <span className="max-w-28 truncate text-sm font-semibold text-slate-700">
+                      {user.name || "User"}
+                    </span>
 
-                    {/* User Info */}
-                    <div className="border-b border-slate-100 px-4 py-4">
-                      <div className="flex items-center gap-3">
+                    <ChevronDown
+                      size={16}
+                      className={`text-slate-500 transition ${
+                        profileOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-                        {user.image || user.photoURL ? (
-                          <img
-                            src={
-                              user.image || user.photoURL
-                            }
-                            alt={user.name || "User"}
-                            className="h-11 w-11 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">
-                            {user.name
-                              ?.charAt(0)
-                              ?.toUpperCase() || "U"}
+                  {/* Profile Dropdown */}
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl z-50">
+                      <div className="border-b border-slate-100 px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          {user.image || user.photoURL ? (
+                            <img
+                              src={user.image || user.photoURL}
+                              alt={user.name || "User"}
+                              className="h-11 w-11 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">
+                              {user.name?.charAt(0)?.toUpperCase() || "U"}
+                            </div>
+                          )}
+
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-slate-900">
+                              {user.name || "User"}
+                            </p>
+                            <p className="truncate text-sm text-slate-500">
+                              {user.email}
+                            </p>
                           </div>
-                        )}
-
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-900">
-                            {user.name || "User"}
-                          </p>
-
-                          <p className="truncate text-sm text-slate-500">
-                            {user.email}
-                          </p>
                         </div>
+                      </div>
 
+                      <div className="p-2">
+                        <Link
+                          to="/my-listings"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                          <ClipboardList size={17} />
+                          My Listings
+                        </Link>
+
+                        <Link
+                          to="/my-bookings"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                          <CalendarDays size={17} />
+                          My Bookings
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                        >
+                          <LogOut size={17} />
+                          Logout
+                        </button>
                       </div>
                     </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Login
+                  </Link>
 
-                    {/* Dropdown Links */}
-                    <div className="p-2">
+                  <Link
+                    to="/register"
+                    className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
+            </div>
 
-                      <Link
-                        to="/my-listings"
-                        onClick={() =>
-                          setProfileOpen(false)
-                        }
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-                      >
-                        <ClipboardList size={17} />
-                        My Listings
-                      </Link>
+            {/* Mobile Menu Open Button */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
+              aria-label="Open navigation menu"
+            >
+              <Menu size={22} />
+            </button>
+          </div>
+        </div>
+      </header>
 
-                      <Link
-                        to="/my-bookings"
-                        onClick={() =>
-                          setProfileOpen(false)
-                        }
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-                      >
-                        <CalendarDays size={17} />
-                        My Bookings
-                      </Link>
+      {/* Fullscreen Mobile Menu Overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
+          {/* Mobile Header Bar */}
+          <div className="flex h-[76px] items-center justify-between border-b border-slate-200 px-4 sm:px-6">
+            <Link
+              to="/"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center"
+            >
+              <img
+                src="/assets/studyNook.png"
+                alt="StudyNook"
+                className="h-12 w-auto object-contain"
+              />
+            </Link>
 
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
-                      >
-                        <LogOut size={17} />
-                        Logout
-                      </button>
-
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                {/* Login */}
-                <Link
-                  to="/login"
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Login
-                </Link>
-
-                {/* Register */}
-                <Link
-                  to="/register"
-                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-                >
-                  Register
-                </Link>
-              </>
-            )}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50"
+              aria-label="Close navigation menu"
+            >
+              <X size={22} />
+            </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            onClick={() =>
-              setMobileOpen((previous) => !previous)
-            }
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 md:hidden"
-            aria-label="Toggle navigation"
-          >
-            {mobileOpen ? (
-              <X size={22} />
-            ) : (
-              <Menu size={22} />
-            )}
-          </button>
-
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileOpen && (
-          <div className="border-t border-slate-200 py-4 md:hidden">
-            <nav className="flex flex-col gap-1">
-
-              {/* Home */}
+          {/* Mobile Menu Content Scroll Area */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+            <nav className="flex flex-col gap-2">
               <Link
                 to="/"
                 onClick={() => setMobileOpen(false)}
                 className={navLinkClass("/")}
               >
-                <HomeIcon size={18} />
+                <HomeIcon size={20} />
                 Home
               </Link>
 
-              {/* Rooms */}
               <Link
                 to="/rooms"
                 onClick={() => setMobileOpen(false)}
                 className={navLinkClass("/rooms")}
               >
-                <DoorOpen size={18} />
+                <DoorOpen size={20} />
                 Rooms
               </Link>
 
-              {/* About */}
               <Link
                 to="/about"
                 onClick={() => setMobileOpen(false)}
                 className={navLinkClass("/about")}
               >
-                <Info size={18} />
+                <Info size={20} />
                 About
               </Link>
 
               {!loading && user ? (
                 <>
-                  {/* Add Room */}
                   <Link
                     to="/add-room"
                     onClick={() => setMobileOpen(false)}
                     className={navLinkClass("/add-room")}
                   >
-                    <PlusCircle size={18} />
+                    <PlusCircle size={20} />
                     Add Room
                   </Link>
 
-                  {/* My Listings */}
                   <Link
                     to="/my-listings"
                     onClick={() => setMobileOpen(false)}
                     className={navLinkClass("/my-listings")}
                   >
-                    <ClipboardList size={18} />
+                    <ClipboardList size={20} />
                     My Listings
                   </Link>
 
-                  {/* My Bookings */}
                   <Link
                     to="/my-bookings"
                     onClick={() => setMobileOpen(false)}
                     className={navLinkClass("/my-bookings")}
                   >
-                    <CalendarDays size={18} />
+                    <CalendarDays size={20} />
                     My Bookings
                   </Link>
 
-                  {/* Mobile User */}
-                  <div className="mt-3 border-t border-slate-200 pt-4">
-
-                    <div className="flex items-center gap-3 px-3">
+                  {/* User Profile Footer */}
+                  <div className="mt-6 border-t border-slate-200 pt-6">
+                    <div className="flex items-center gap-3 px-2">
                       {user.image || user.photoURL ? (
                         <img
-                          src={
-                            user.image || user.photoURL
-                          }
+                          src={user.image || user.photoURL}
                           alt={user.name || "User"}
-                          className="h-10 w-10 rounded-full object-cover"
+                          className="h-11 w-11 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">
-                          {user.name
-                            ?.charAt(0)
-                            ?.toUpperCase() || "U"}
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">
+                          {user.name?.charAt(0)?.toUpperCase() || "U"}
                         </div>
                       )}
 
@@ -463,33 +422,29 @@ function Navbar() {
                         <p className="truncate font-semibold text-slate-900">
                           {user.name || "User"}
                         </p>
-
                         <p className="truncate text-sm text-slate-500">
                           {user.email}
                         </p>
                       </div>
                     </div>
 
-                    {/* Mobile Logout */}
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="mt-3 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left font-medium text-red-600 transition hover:bg-red-50"
+                      className="mt-4 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left font-semibold text-red-600 transition hover:bg-red-50"
                     >
-                      <LogOut size={18} />
+                      <LogOut size={20} />
                       Logout
                     </button>
-
                   </div>
                 </>
               ) : (
-                /* Guest Mobile Actions */
-                <div className="mt-3 flex gap-3 border-t border-slate-200 pt-4">
-
+                /* Guest Action Buttons */
+                <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6">
                   <Link
                     to="/login"
                     onClick={() => setMobileOpen(false)}
-                    className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
+                    className="w-full rounded-xl border border-slate-200 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
                     Login
                   </Link>
@@ -497,18 +452,17 @@ function Navbar() {
                   <Link
                     to="/register"
                     onClick={() => setMobileOpen(false)}
-                    className="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
+                    className="w-full rounded-xl bg-blue-600 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
                   >
                     Register
                   </Link>
-
                 </div>
               )}
             </nav>
           </div>
-        )}
-      </div>
-    </header>
+        </div>
+      )}
+    </>
   );
 }
 

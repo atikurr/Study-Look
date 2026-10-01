@@ -1,110 +1,390 @@
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
-  BookOpen,
-  Clock3,
+  Search,
   ShieldCheck,
-  Users,
+  CalendarDays,
+  Sparkles,
+  ChevronDown,
 } from "lucide-react";
 
 function HomeHero() {
   return (
-    <section className="relative overflow-hidden bg-slate-950 text-white">
-      {/* Background Decoration */}
-      <div className="absolute inset-0">
-        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-slate-700/30 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-slate-700/20 blur-3xl" />
-      </div>
+    <section className="relative min-h-[680px] overflow-hidden">
 
-      <div className="relative mx-auto grid min-h-[620px] max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:px-8">
-        {/* Left Content */}
-        <div>
-          {/* Small Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
-            <BookOpen size={16} />
-            Smart study spaces for focused learning
+      {/* ========================================
+          BACKGROUND IMAGE
+      ======================================== */}
+      <img
+        src="/assets/hero-banner.png"
+        alt="Modern StudyNook study space"
+        className="
+          absolute inset-0
+          h-full w-full
+          object-cover
+          object-center
+        "
+      />
+
+      {/* ========================================
+          LIGHTER GRADIENT OVERLAY
+      ======================================== */}
+      <div
+        className="
+          absolute inset-0
+          bg-gradient-to-r
+          from-slate-950/65
+          via-slate-950/30
+          to-transparent
+        "
+      />
+
+      {/* Small overall overlay */}
+      <div className="absolute inset-0 bg-black/5" />
+
+      {/* Bottom fade */}
+      <div
+        className="
+          absolute inset-x-0 bottom-0
+          h-32
+          bg-gradient-to-t
+          from-slate-950/35
+          to-transparent
+        "
+      />
+
+      {/* ========================================
+          CONTENT
+      ======================================== */}
+      <div
+        className="
+          relative z-10
+          mx-auto
+          flex min-h-[680px]
+          max-w-7xl
+          items-center
+          px-4 py-20
+          sm:px-6
+          lg:px-8
+        "
+      >
+        <div className="max-w-3xl text-white">
+
+          {/* ========================================
+              BADGE
+          ======================================== */}
+          <div
+            className="
+              mb-6
+              inline-flex items-center gap-2
+              rounded-full
+              border border-white/25
+              bg-slate-950/20
+              px-4 py-2
+              text-sm font-medium
+              text-white
+              shadow-lg
+              backdrop-blur-md
+            "
+          >
+            <Sparkles
+              size={16}
+              className="text-blue-300"
+            />
+
+            <span>
+              SMART STUDY
+            </span>
+
+            <span className="text-white/50">
+              •
+            </span>
+
+            <span className="text-blue-200">
+              BETTER FOCUS
+            </span>
           </div>
 
-          {/* Heading */}
-          <h1 className="max-w-3xl text-5xl font-bold leading-tight tracking-tight md:text-6xl">
-            Find the perfect place to
-            <span className="block text-slate-300">
-              study, focus & grow.
+          {/* ========================================
+              HEADING
+          ======================================== */}
+          <h1
+            className="
+              text-5xl
+              font-extrabold
+              leading-[1.05]
+              tracking-tight
+              drop-shadow-lg
+              sm:text-6xl
+              lg:text-7xl
+            "
+          >
+            Your Perfect Space to
+
+            <span className="mt-2 block">
+
+              <span className="text-blue-400">
+                Study,
+              </span>
+
+              {" "}
+
+              <span className="text-emerald-400">
+                Focus
+              </span>
+
+              {" "}
+
+              <span className="text-orange-300">
+                & Create.
+              </span>
+
             </span>
           </h1>
 
-          {/* Description */}
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-            StudyNook makes it easy to discover comfortable study rooms,
-            check availability, and book your ideal study space in just a few
-            clicks.
+          {/* ========================================
+              DESCRIPTION
+          ======================================== */}
+          <p
+            className="
+              mt-7
+              max-w-2xl
+              text-base
+              leading-7
+              text-white/90
+              drop-shadow-md
+              sm:text-lg
+            "
+          >
+            Discover comfortable study rooms designed for
+            focused learning, productive work, and meaningful
+            collaboration. Find a space that fits your schedule
+            and book it in just a few clicks.
           </p>
 
-          {/* Buttons */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          {/* ========================================
+              CTA BUTTONS
+          ======================================== */}
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+
+            {/* Explore Rooms */}
             <Link
               to="/rooms"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:bg-slate-200"
+              className="
+                group
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                bg-blue-600
+                px-6 py-3.5
+                text-sm font-bold
+                text-white
+                shadow-xl
+                shadow-blue-900/30
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-blue-500
+                hover:shadow-2xl
+              "
             >
-              Explore Rooms
-              <ArrowRight size={18} />
-            </Link>
+              <Search size={18} />
 
-            <Link
-              to="/register"
-              className="inline-flex items-center justify-center rounded-xl border border-white/20 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"
-            >
-              Get Started
-            </Link>
-          </div>
+              <span>
+                Explore Rooms
+              </span>
 
-          {/* Features */}
-          <div className="mt-10 flex flex-wrap gap-x-6 gap-y-4 text-sm text-slate-300">
-            <div className="flex items-center gap-2">
-              <ShieldCheck size={18} />
-              Secure booking
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Clock3 size={18} />
-              Flexible hours
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Users size={18} />
-              Multiple capacities
-            </div>
-          </div>
-        </div>
-
-        {/* Right Visual */}
-        <div className="hidden lg:block">
-          <div className="relative mx-auto max-w-lg">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-4 shadow-2xl backdrop-blur">
-              <img
-                src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80"
-                alt="Modern study workspace"
-                className="h-[430px] w-full rounded-2xl object-cover"
+              <ArrowRight
+                size={18}
+                className="
+                  transition-transform
+                  duration-300
+                  group-hover:translate-x-1
+                "
               />
+            </Link>
 
-              {/* Floating Card */}
-              <div className="absolute bottom-8 left-8 right-8 rounded-2xl border border-white/10 bg-slate-950/85 p-5 backdrop-blur">
-                <p className="text-sm text-slate-400">
-                  Your next productive session
+            {/* List Your Room */}
+            <Link
+              to="/add-room"
+              className="
+                group
+                inline-flex
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                border border-white/35
+                bg-slate-950/20
+                px-6 py-3.5
+                text-sm font-bold
+                text-white
+                shadow-lg
+                backdrop-blur-md
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:bg-white/15
+                hover:shadow-xl
+              "
+            >
+              <span>
+                List Your Room
+              </span>
+
+              <ArrowRight
+                size={18}
+                className="
+                  transition-transform
+                  duration-300
+                  group-hover:translate-x-1
+                "
+              />
+            </Link>
+
+          </div>
+
+          {/* ========================================
+              FEATURE HIGHLIGHTS
+          ======================================== */}
+          <div className="mt-12 flex flex-wrap gap-y-5">
+
+            {/* Feature 1 */}
+            <div className="flex items-center gap-3 pr-7 sm:pr-8">
+
+              <div
+                className="
+                  flex h-10 w-10
+                  shrink-0
+                  items-center justify-center
+                  rounded-xl
+                  border border-white/20
+                  bg-slate-950/20
+                  backdrop-blur-md
+                "
+              >
+                <CalendarDays
+                  size={19}
+                  className="text-blue-300"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  Flexible
                 </p>
 
-                <div className="mt-2 flex items-center justify-between">
-                  <h3 className="text-lg font-bold">
-                    Focus. Learn. Achieve.
-                  </h3>
-
-                  <BookOpen size={20} />
-                </div>
+                <p className="text-xs text-white/75">
+                  Booking Slots
+                </p>
               </div>
+
             </div>
+
+            {/* Divider */}
+            <div className="hidden h-10 w-px bg-white/20 sm:block" />
+
+            {/* Feature 2 */}
+            <div className="flex items-center gap-3 px-0 sm:px-8">
+
+              <div
+                className="
+                  flex h-10 w-10
+                  shrink-0
+                  items-center justify-center
+                  rounded-xl
+                  border border-white/20
+                  bg-slate-950/20
+                  backdrop-blur-md
+                "
+              >
+                <ShieldCheck
+                  size={19}
+                  className="text-emerald-300"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  Safe & Secure
+                </p>
+
+                <p className="text-xs text-white/75">
+                  Booking System
+                </p>
+              </div>
+
+            </div>
+
+            {/* Divider */}
+            <div className="hidden h-10 w-px bg-white/20 sm:block" />
+
+            {/* Feature 3 */}
+            <div className="flex items-center gap-3 pl-0 sm:pl-8">
+
+              <div
+                className="
+                  flex h-10 w-10
+                  shrink-0
+                  items-center justify-center
+                  rounded-xl
+                  border border-white/20
+                  bg-slate-950/20
+                  backdrop-blur-md
+                "
+              >
+                <Sparkles
+                  size={19}
+                  className="text-orange-300"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  Comfortable
+                </p>
+
+                <p className="text-xs text-white/75">
+                  Study Spaces
+                </p>
+              </div>
+
+            </div>
+
           </div>
+
         </div>
       </div>
+
+      {/* ========================================
+          SCROLL INDICATOR
+      ======================================== */}
+      <div
+        className="
+          absolute
+          bottom-6
+          left-1/2
+          z-20
+          hidden
+          -translate-x-1/2
+          flex-col
+          items-center
+          text-white/80
+          sm:flex
+        "
+      >
+        <span className="mb-1 text-xs font-medium tracking-wide">
+          Scroll to explore
+        </span>
+
+        <ChevronDown
+          size={20}
+          className="animate-bounce"
+        />
+      </div>
+
     </section>
   );
 }
