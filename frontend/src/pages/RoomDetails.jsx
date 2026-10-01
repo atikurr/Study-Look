@@ -13,8 +13,11 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import useTitle from "../hooks/useTitle";
 
 function RoomDetails() {
+  useTitle("Room Details");
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -472,7 +475,7 @@ function RoomDetails() {
                     to={`/rooms/${room._id}/book`}
                     className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-blue-600"
                   >
-                    Book This Room
+                    Book Now
                   </Link>
                 ) : (
                   <Link

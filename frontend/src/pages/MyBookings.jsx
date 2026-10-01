@@ -13,8 +13,11 @@ import {
   DoorOpen,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import useTitle from "../hooks/useTitle";
 
 function MyBookings() {
+  useTitle("My Bookings");
+
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -164,7 +167,7 @@ function MyBookings() {
         )
       );
 
-      toast.success("Booking cancelled successfully");
+      toast.success("Booking cancelled");
 
       setCancelBookingId(null);
     } catch (error) {
@@ -285,7 +288,7 @@ function MyBookings() {
             </div>
 
             <h2 className="mt-4 text-lg font-semibold text-slate-900">
-              No bookings yet
+              You have no bookings yet.
             </h2>
 
             <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">

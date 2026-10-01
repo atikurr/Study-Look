@@ -1,7 +1,10 @@
 import styled from "styled-components";
 import { Link } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 
 function NotFound() {
+  useTitle("Page Not Found");
+
   return (
     <Wrapper>
       <Card>

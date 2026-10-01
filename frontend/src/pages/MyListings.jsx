@@ -10,8 +10,11 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import useTitle from "../hooks/useTitle";
 
 function MyListings() {
+  useTitle("My Listings");
+
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
 

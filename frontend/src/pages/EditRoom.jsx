@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import useTitle from "../hooks/useTitle";
 
 const AMENITIES = [
   "Whiteboard",
@@ -12,6 +13,8 @@ const AMENITIES = [
 ];
 
 function EditRoom() {
+  useTitle("Edit Room");
+
   const { id } = useParams();
   const navigate = useNavigate();
 

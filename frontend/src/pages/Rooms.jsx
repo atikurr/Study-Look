@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import RoomCard from "../components/RoomCard";
+import useTitle from "../hooks/useTitle";
 
 const AMENITIES = [
   "Whiteboard",
@@ -214,6 +215,8 @@ function FilterContent({
 ===================================================== */
 
 function Rooms() {
+  useTitle("Available Rooms");
+
   const [rooms, setRooms] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedAmenities, setSelectedAmenities] =

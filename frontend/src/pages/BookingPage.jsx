@@ -13,8 +13,11 @@ import {
   Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import useTitle from "../hooks/useTitle";
 
 function BookingPage() {
+  useTitle("Book Room");
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -679,7 +682,7 @@ function BookingPage() {
                     htmlFor="note"
                     className="mb-2 block text-sm font-semibold text-slate-800"
                   >
-                    Note
+                    Special note
                     <span className="ml-1 font-normal text-slate-400">
                       (Optional)
                     </span>
