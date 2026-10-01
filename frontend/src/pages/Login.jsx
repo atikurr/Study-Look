@@ -92,7 +92,7 @@ function Login() {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "http://localhost:5173/auth/callback",
+        callbackURL: "/auth/callback",
       });
     } catch (error) {
       console.error("Google login error:", error);
@@ -109,7 +109,7 @@ function Login() {
     try {
       await authClient.signIn.social({
         provider: "apple",
-        callbackURL: "http://localhost:5173/auth/callback",
+        callbackURL: "/auth/callback",
       });
     } catch (error) {
       console.error("Apple login error:", error);

@@ -129,7 +129,7 @@ function Register() {
       await authClient.signIn.social({
         provider: "google",
         callbackURL:
-          "http://localhost:5173/auth/callback",
+          "/auth/callback",
       });
     } catch (error) {
       console.error(
@@ -147,7 +147,7 @@ function Register() {
       await authClient.signIn.social({
         provider: "apple",
         callbackURL:
-          "http://localhost:5173/auth/callback",
+          "/auth/callback",
       });
     } catch (error) {
       console.error(
