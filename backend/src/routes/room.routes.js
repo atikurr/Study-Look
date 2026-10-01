@@ -5,6 +5,15 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
+const allowedAmenities = [
+  "Whiteboard",
+  "Projector",
+  "Wi-Fi",
+  "Power Outlets",
+  "Quiet Zone",
+  "Air Conditioning",
+];
+
 // ==========================================
 // GET ALL ROOMS
 // Public
@@ -22,10 +31,7 @@ router.get("/", async (req, res) => {
 
     const query = {};
 
-    // ------------------------------------------
     // Search by room name
-    // MongoDB: $regex
-    // ------------------------------------------
     if (search.trim()) {
       query.roomName = {
         $regex: search.trim(),
@@ -33,10 +39,7 @@ router.get("/", async (req, res) => {
       };
     }
 
-    // ------------------------------------------
     // Amenities filter
-    // MongoDB: $in
-    // ------------------------------------------
     if (amenities) {
       const amenityList = (
         Array.isArray(amenities)
@@ -53,18 +56,15 @@ router.get("/", async (req, res) => {
       }
     }
 
-    // ------------------------------------------
     // Hourly rate filter
-    // MongoDB: $gte / $lte
-    // ------------------------------------------
     if (minRate || maxRate) {
-      query.hourlyRate = {};
+      const rateQuery = {};
 
       if (minRate !== undefined && minRate !== "") {
         const minimum = Number(minRate);
 
         if (!Number.isNaN(minimum)) {
-          query.hourlyRate.$gte = minimum;
+          rateQuery.$gte = minimum;
         }
       }
 
@@ -72,21 +72,16 @@ router.get("/", async (req, res) => {
         const maximum = Number(maxRate);
 
         if (!Number.isNaN(maximum)) {
-          query.hourlyRate.$lte = maximum;
+          rateQuery.$lte = maximum;
         }
       }
 
-      // Remove empty rate object
-      if (
-        Object.keys(query.hourlyRate).length === 0
-      ) {
-        delete query.hourlyRate;
+      if (Object.keys(rateQuery).length > 0) {
+        query.hourlyRate = rateQuery;
       }
     }
 
-    // ------------------------------------------
     // Floor filter
-    // ------------------------------------------
     if (floor && floor !== "all") {
       query.floor = {
         $regex: floor.trim(),
@@ -94,9 +89,6 @@ router.get("/", async (req, res) => {
       };
     }
 
-    // ------------------------------------------
-    // Fetch rooms
-    // ------------------------------------------
     const rooms = await Room.find(query).sort({
       createdAt: -1,
     });
@@ -131,10 +123,7 @@ router.get("/latest", async (req, res) => {
       rooms,
     });
   } catch (error) {
-    console.error(
-      "Get latest rooms error:",
-      error
-    );
+    console.error("Get latest rooms error:", error);
 
     return res.status(500).json({
       success: false,
@@ -163,10 +152,7 @@ router.get(
         rooms,
       });
     } catch (error) {
-      console.error(
-        "Get my listings error:",
-        error
-      );
+      console.error("Get my listings error:", error);
 
       return res.status(500).json({
         success: false,
@@ -182,9 +168,7 @@ router.get(
 // ==========================================
 router.get("/:id", async (req, res) => {
   try {
-    const room = await Room.findById(
-      req.params.id
-    );
+    const room = await Room.findById(req.params.id);
 
     if (!room) {
       return res.status(404).json({
@@ -200,7 +184,6 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.error("Get room error:", error);
 
-    // Invalid MongoDB ObjectId
     if (error.name === "CastError") {
       return res.status(404).json({
         success: false,
@@ -234,9 +217,7 @@ router.post(
         amenities,
       } = req.body;
 
-      // ------------------------------------------
-      // Required fields validation
-      // ------------------------------------------
+      // Required fields
       if (
         !roomName?.trim() ||
         !description?.trim() ||
@@ -247,14 +228,11 @@ router.post(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "All required fields must be provided",
+          message: "All required fields must be provided",
         });
       }
 
-      // ------------------------------------------
       // Number validation
-      // ------------------------------------------
       const roomCapacity = Number(capacity);
       const roomHourlyRate = Number(hourlyRate);
 
@@ -264,8 +242,7 @@ router.post(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "Capacity must be at least 1",
+          message: "Capacity must be at least 1",
         });
       }
 
@@ -275,34 +252,18 @@ router.post(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "Hourly rate must be a valid positive number",
+          message: "Hourly rate must be a valid number",
         });
       }
 
-      // ------------------------------------------
       // Amenities validation
-      // ------------------------------------------
-      const allowedAmenities = [
-        "Whiteboard",
-        "Projector",
-        "Wi-Fi",
-        "Power Outlets",
-        "Quiet Zone",
-        "Air Conditioning",
-      ];
-
-      const roomAmenities = Array.isArray(
-        amenities
-      )
+      const roomAmenities = Array.isArray(amenities)
         ? amenities.filter((item) =>
             allowedAmenities.includes(item)
           )
         : [];
 
-      // ------------------------------------------
       // Create room
-      // ------------------------------------------
       const room = await Room.create({
         roomName: roomName.trim(),
         description: description.trim(),
@@ -320,10 +281,7 @@ router.post(
         room,
       });
     } catch (error) {
-      console.error(
-        "Create room error:",
-        error
-      );
+      console.error("Create room error:", error);
 
       return res.status(500).json({
         success: false,
@@ -342,9 +300,7 @@ router.put(
   authMiddleware,
   async (req, res) => {
     try {
-      const room = await Room.findById(
-        req.params.id
-      );
+      const room = await Room.findById(req.params.id);
 
       if (!room) {
         return res.status(404).json({
@@ -353,14 +309,15 @@ router.put(
         });
       }
 
-      // ------------------------------------------
-      // Owner verification
-      // ------------------------------------------
-      if (room.ownerId !== req.user.id) {
+      // IMPORTANT:
+      // MongoDB ObjectId -> string comparison
+      if (
+        room.ownerId.toString() !==
+        req.user.id.toString()
+      ) {
         return res.status(403).json({
           success: false,
-          message:
-            "You can only edit your own room",
+          message: "You can only edit your own room",
         });
       }
 
@@ -374,97 +331,93 @@ router.put(
         amenities,
       } = req.body;
 
-      // ------------------------------------------
-      // Update text fields
-      // ------------------------------------------
+      // Update room name
       if (roomName !== undefined) {
-        room.roomName =
-          roomName.trim();
+        if (!roomName.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: "Room name is required",
+          });
+        }
+
+        room.roomName = roomName.trim();
       }
 
+      // Update description
       if (description !== undefined) {
-        room.description =
-          description.trim();
+        if (!description.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: "Description is required",
+          });
+        }
+
+        room.description = description.trim();
       }
 
+      // Update image
       if (image !== undefined) {
-        room.image =
-          image.trim();
+        if (!image.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: "Image URL is required",
+          });
+        }
+
+        room.image = image.trim();
       }
 
+      // Update floor
       if (floor !== undefined) {
-        room.floor =
-          floor.trim();
+        if (!floor.trim()) {
+          return res.status(400).json({
+            success: false,
+            message: "Floor is required",
+          });
+        }
+
+        room.floor = floor.trim();
       }
 
-      // ------------------------------------------
       // Update capacity
-      // ------------------------------------------
       if (capacity !== undefined) {
-        const updatedCapacity =
-          Number(capacity);
+        const updatedCapacity = Number(capacity);
 
         if (
-          !Number.isFinite(
-            updatedCapacity
-          ) ||
+          !Number.isFinite(updatedCapacity) ||
           updatedCapacity < 1
         ) {
           return res.status(400).json({
             success: false,
-            message:
-              "Capacity must be at least 1",
+            message: "Capacity must be at least 1",
           });
         }
 
-        room.capacity =
-          updatedCapacity;
+        room.capacity = updatedCapacity;
       }
 
-      // ------------------------------------------
       // Update hourly rate
-      // ------------------------------------------
       if (hourlyRate !== undefined) {
-        const updatedRate =
-          Number(hourlyRate);
+        const updatedRate = Number(hourlyRate);
 
         if (
-          !Number.isFinite(
-            updatedRate
-          ) ||
+          !Number.isFinite(updatedRate) ||
           updatedRate < 0
         ) {
           return res.status(400).json({
             success: false,
-            message:
-              "Hourly rate must be a valid number",
+            message: "Hourly rate must be a valid number",
           });
         }
 
-        room.hourlyRate =
-          updatedRate;
+        room.hourlyRate = updatedRate;
       }
 
-      // ------------------------------------------
       // Update amenities
-      // ------------------------------------------
       if (amenities !== undefined) {
-        const allowedAmenities = [
-          "Whiteboard",
-          "Projector",
-          "Wi-Fi",
-          "Power Outlets",
-          "Quiet Zone",
-          "Air Conditioning",
-        ];
-
-        room.amenities = Array.isArray(
-          amenities
-        )
+        room.amenities = Array.isArray(amenities)
           ? amenities.filter((item) =>
-              allowedAmenities.includes(
-                item
-              )
+              allowedAmenities.includes(item)
             )
           : [];
       }
@@ -477,10 +430,7 @@ router.put(
         room,
       });
     } catch (error) {
-      console.error(
-        "Update room error:",
-        error
-      );
+      console.error("Update room error:", error);
 
       if (error.name === "CastError") {
         return res.status(404).json({
@@ -506,9 +456,7 @@ router.delete(
   authMiddleware,
   async (req, res) => {
     try {
-      const room = await Room.findById(
-        req.params.id
-      );
+      const room = await Room.findById(req.params.id);
 
       if (!room) {
         return res.status(404).json({
@@ -517,42 +465,32 @@ router.delete(
         });
       }
 
-      // ------------------------------------------
-      // Owner verification
-      // ------------------------------------------
-      if (room.ownerId !== req.user.id) {
+      // IMPORTANT:
+      // MongoDB ObjectId -> string comparison
+      if (
+        room.ownerId.toString() !==
+        req.user.id.toString()
+      ) {
         return res.status(403).json({
           success: false,
-          message:
-            "You can only delete your own room",
+          message: "You can only delete your own room",
         });
       }
 
-      // ------------------------------------------
-      // Remove every booking that belongs to this
-      // room so no orphan bookings are left behind
-      // ------------------------------------------
+      // Delete bookings associated with this room
       await Booking.deleteMany({
         roomId: room._id,
       });
 
-      // ------------------------------------------
-      // Delete the room
-      // ------------------------------------------
-      await Room.findByIdAndDelete(
-        req.params.id
-      );
+      // Delete room
+      await Room.findByIdAndDelete(req.params.id);
 
       return res.status(200).json({
         success: true,
-        message:
-          "Room deleted successfully",
+        message: "Room deleted successfully",
       });
     } catch (error) {
-      console.error(
-        "Delete room error:",
-        error
-      );
+      console.error("Delete room error:", error);
 
       if (error.name === "CastError") {
         return res.status(404).json({
@@ -563,8 +501,7 @@ router.delete(
 
       return res.status(500).json({
         success: false,
-        message:
-          "Failed to delete room",
+        message: "Failed to delete room",
       });
     }
   }
