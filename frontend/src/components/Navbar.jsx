@@ -299,16 +299,6 @@ function Navbar() {
                 Rooms
               </Link>
 
-              {/* About */}
-
-              <Link
-                to="/about"
-                className={navLinkClass("/about")}
-              >
-                <Info size={17} />
-                About
-              </Link>
-
               {/* Private Navigation */}
 
               {!loading && user && (

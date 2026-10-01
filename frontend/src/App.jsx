@@ -2,7 +2,6 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate,
 } from "react-router-dom";
 
 import MainLayout from "./layouts/MainLayout";
@@ -10,7 +9,6 @@ import MainLayout from "./layouts/MainLayout";
 // Public Pages
 import Home from "./pages/Home";
 import Rooms from "./pages/Rooms";
-import About from "./pages/About";
 
 // Protected Pages
 import RoomDetails from "./pages/RoomDetails";
@@ -25,6 +23,9 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
 
+// Other Pages
+import NotFound from "./pages/NotFound";
+
 // Protected Route
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -32,12 +33,16 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Main Layout */}
+
+        {/* =====================================
+            MAIN LAYOUT
+        ====================================== */}
+
         <Route element={<MainLayout />}>
 
-          {/* =========================
+          {/* ===================================
               PUBLIC PAGES
-          ========================== */}
+          =================================== */}
 
           {/* Home */}
           <Route
@@ -51,15 +56,9 @@ function App() {
             element={<Rooms />}
           />
 
-          {/* About */}
-          <Route
-            path="/about"
-            element={<About />}
-          />
-
-          {/* =========================
+          {/* ===================================
               PROTECTED PAGES
-          ========================== */}
+          =================================== */}
 
           {/* Room Details */}
           <Route
@@ -120,11 +119,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* ===================================
+              404 PAGE
+          =================================== */}
+
+          <Route
+            path="*"
+            element={<NotFound />}
+          />
+
         </Route>
 
-        {/* =========================
+        {/* =====================================
             AUTHENTICATION
-        ========================== */}
+        ====================================== */}
 
         {/* Register */}
         <Route
@@ -144,19 +153,6 @@ function App() {
           element={<AuthCallback />}
         />
 
-        {/* =========================
-            404
-        ========================== */}
-
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/"
-              replace
-            />
-          }
-        />
       </Routes>
     </BrowserRouter>
   );

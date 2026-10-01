@@ -121,15 +121,6 @@ function Footer() {
 
               <li>
                 <a
-                  href="/about"
-                  className="transition hover:text-blue-400"
-                >
-                  About
-                </a>
-              </li>
-
-              <li>
-                <a
                   href="/login"
                   className="transition hover:text-blue-400"
                 >
@@ -207,7 +198,7 @@ function Footer() {
                 />
 
                 <span>
-                  Dhaka, Bangladesh
+                  Gazipur,Dhaka, Bangladesh
                 </span>
               </li>
 
@@ -221,7 +212,7 @@ function Footer() {
                   href="mailto:hello@studynook.com"
                   className="transition hover:text-blue-400"
                 >
-                  hello@studynook.com
+                  info@studynook.com
                 </a>
               </li>
 

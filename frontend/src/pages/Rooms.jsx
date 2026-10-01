@@ -6,6 +6,8 @@ import {
   ChevronDown,
   RotateCcw,
   DoorOpen,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import RoomCard from "../components/RoomCard";
@@ -28,10 +30,10 @@ const FLOOR_OPTIONS = [
   { value: "5th", label: "5th Floor" },
 ];
 
+const ROOMS_PER_PAGE = 6;
+
 /* =====================================================
    FILTER CONTENT
-   IMPORTANT:
-   This component is outside Rooms()
 ===================================================== */
 
 function FilterContent({
@@ -183,7 +185,7 @@ function FilterContent({
         </div>
       </div>
 
-      {/* Clear */}
+      {/* Clear Filters */}
       {filterCount > 0 && (
         <button
           type="button"
@@ -221,6 +223,8 @@ function Rooms() {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] =
     useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
 
   /* =====================================================
      FETCH ROOMS
@@ -349,6 +353,7 @@ function Rooms() {
     setFloor("all");
     setMinRate("");
     setMaxRate("");
+    setCurrentPage(1);
   };
 
   /* =====================================================
@@ -386,12 +391,61 @@ function Rooms() {
   ]);
 
   /* =====================================================
+     PAGINATION
+  ===================================================== */
+
+  const totalPages = Math.ceil(
+    rooms.length / ROOMS_PER_PAGE
+  );
+
+  /*
+    If filtering reduces the number of rooms while
+    user is on a later page, keep the page valid.
+  */
+  const activePage =
+    totalPages > 0
+      ? Math.min(currentPage, totalPages)
+      : 1;
+
+  const startIndex =
+    (activePage - 1) * ROOMS_PER_PAGE;
+
+  const endIndex =
+    startIndex + ROOMS_PER_PAGE;
+
+  const currentRooms = rooms.slice(
+    startIndex,
+    endIndex
+  );
+
+  const showingStart =
+    rooms.length === 0 ? 0 : startIndex + 1;
+
+  const showingEnd = Math.min(
+    endIndex,
+    rooms.length
+  );
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) {
+      return;
+    }
+
+    setCurrentPage(page);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  /* =====================================================
      PAGE
   ===================================================== */
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* ================================================
+      {/* =================================================
           HEADER
       ================================================= */}
 
@@ -420,7 +474,7 @@ function Rooms() {
         </div>
       </section>
 
-      {/* ================================================
+      {/* =================================================
           SEARCH BAR
       ================================================= */}
 
@@ -476,15 +530,15 @@ function Rooms() {
         </div>
       </section>
 
-      {/* ================================================
+      {/* =================================================
           MAIN CONTENT
       ================================================= */}
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[250px_1fr]">
-          {/* ============================================
+          {/* =================================================
               DESKTOP FILTER SIDEBAR
-          ============================================= */}
+          ================================================= */}
 
           <aside className="hidden h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:block">
             <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
@@ -525,20 +579,19 @@ function Rooms() {
             />
           </aside>
 
-          {/* ============================================
+          {/* =================================================
               RESULTS
-          ============================================= */}
+          ================================================= */}
 
           <div className="min-w-0">
+            {/* Results Header */}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-slate-500">
                 {loading
                   ? "Finding rooms..."
-                  : `${rooms.length} ${
-                      rooms.length === 1
-                        ? "room"
-                        : "rooms"
-                    } found`}
+                  : rooms.length > 0
+                  ? `Showing ${showingStart}-${showingEnd} of ${rooms.length} rooms`
+                  : "0 rooms found"}
               </p>
 
               {filterCount > 0 && (
@@ -555,8 +608,8 @@ function Rooms() {
 
             {/* Loading */}
             {loading && (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {Array.from({ length: 4 }).map(
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map(
                   (_, index) => (
                     <div
                       key={index}
@@ -603,15 +656,71 @@ function Rooms() {
             {/* Rooms */}
             {!loading &&
               !error &&
-              rooms.length > 0 && (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {rooms.map((room) => (
-                    <RoomCard
-                      key={room._id}
-                      room={room}
-                    />
-                  ))}
-                </div>
+              currentRooms.length > 0 && (
+                <>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {currentRooms.map((room) => (
+                      <RoomCard
+                        key={room._id}
+                        room={room}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="mt-10 flex items-center justify-center gap-2">
+                      {/* Previous */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          goToPage(activePage - 1)
+                        }
+                        disabled={activePage === 1}
+                        aria-label="Previous page"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+
+                      {/* Page Numbers */}
+                      {Array.from(
+                        { length: totalPages },
+                        (_, index) => index + 1
+                      ).map((page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() =>
+                            goToPage(page)
+                          }
+                          className={`flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-sm font-bold transition ${
+                            activePage === page
+                              ? "bg-blue-600 text-white shadow-sm"
+                              : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+
+                      {/* Next */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          goToPage(activePage + 1)
+                        }
+                        disabled={
+                          activePage === totalPages
+                        }
+                        aria-label="Next page"
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
 
             {/* Empty */}
@@ -647,7 +756,7 @@ function Rooms() {
         </div>
       </section>
 
-      {/* ================================================
+      {/* =================================================
           MOBILE FILTER DRAWER
       ================================================= */}
 
