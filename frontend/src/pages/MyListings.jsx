@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Pencil, Trash2, Plus, Users, MapPin } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Users,
+  MapPin,
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 function MyListings() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [deletingId, setDeletingId] = useState(null);
+  const [deleteRoom, setDeleteRoom] = useState(null);
 
   useEffect(() => {
     const loadListings = async () => {
@@ -21,13 +31,20 @@ function MyListings() {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(data.message || "Failed to load your listings.");
+          throw new Error(
+            data.message || "Failed to load your listings."
+          );
         }
 
-        setRooms(data.rooms);
+        setRooms(
+          Array.isArray(data.rooms) ? data.rooms : []
+        );
       } catch (error) {
         console.error("My listings error:", error);
-        toast.error(error.message || "Failed to load your listings.");
+
+        toast.error(
+          error.message || "Failed to load your listings."
+        );
       } finally {
         setLoading(false);
       }
@@ -36,14 +53,24 @@ function MyListings() {
     loadListings();
   }, []);
 
-  const handleDelete = async (roomId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this room?"
-    );
+  /* =====================================================
+     OPEN DELETE MODAL
+  ===================================================== */
 
-    if (!confirmed) {
+  const handleDeleteClick = (room) => {
+    setDeleteRoom(room);
+  };
+
+  /* =====================================================
+     CONFIRM DELETE
+  ===================================================== */
+
+  const handleConfirmDelete = async () => {
+    if (!deleteRoom) {
       return;
     }
+
+    const roomId = deleteRoom._id;
 
     try {
       setDeletingId(roomId);
@@ -59,27 +86,51 @@ function MyListings() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        toast.error(data.message || "Failed to delete room.");
+        toast.error(
+          data.message || "Failed to delete room."
+        );
         return;
       }
 
       setRooms((previous) =>
-        previous.filter((room) => room._id !== roomId)
+        previous.filter(
+          (room) => room._id !== roomId
+        )
       );
+
+      setDeleteRoom(null);
 
       toast.success("Room deleted successfully.");
     } catch (error) {
       console.error("Delete room error:", error);
+
       toast.error("Something went wrong.");
     } finally {
       setDeletingId(null);
     }
   };
 
+  /* =====================================================
+     LOADING
+  ===================================================== */
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-10">
+        <div className="mx-auto flex min-h-60 max-w-7xl items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
+
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
@@ -104,15 +155,17 @@ function MyListings() {
           </Link>
         </div>
 
-        {/* Loading */}
-        {loading ? (
-          <div className="flex min-h-60 items-center justify-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900" />
-          </div>
-        ) : rooms.length === 0 ? (
-          /* Empty State */
+        {/* =================================================
+            EMPTY STATE
+        ================================================= */}
+
+        {rooms.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-            <h2 className="text-2xl font-bold text-slate-900">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <Plus size={25} />
+            </div>
+
+            <h2 className="mt-5 text-2xl font-bold text-slate-900">
               No listings yet
             </h2>
 
@@ -129,19 +182,22 @@ function MyListings() {
             </Link>
           </div>
         ) : (
-          /* Listings */
+          /* =================================================
+             LISTINGS
+          ================================================= */
+
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {rooms.map((room) => (
               <div
                 key={room._id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 {/* Image */}
-                <div className="h-52 overflow-hidden">
+                <div className="h-52 overflow-hidden bg-slate-100">
                   <img
                     src={room.image}
                     alt={room.roomName}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
                   />
                 </div>
 
@@ -155,18 +211,26 @@ function MyListings() {
                     {room.description}
                   </p>
 
+                  {/* Room Info */}
                   <div className="mt-4 space-y-2 text-sm text-slate-600">
                     <div className="flex items-center gap-2">
-                      <MapPin size={17} />
+                      <MapPin
+                        size={17}
+                        className="text-slate-400"
+                      />
                       {room.floor}
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Users size={17} />
+                      <Users
+                        size={17}
+                        className="text-slate-400"
+                      />
                       {room.capacity} people
                     </div>
                   </div>
 
+                  {/* Price */}
                   <div className="mt-4 text-lg font-bold text-slate-900">
                     ${room.hourlyRate}
                     <span className="text-sm font-normal text-slate-500">
@@ -177,25 +241,29 @@ function MyListings() {
 
                   {/* Actions */}
                   <div className="mt-5 flex gap-3">
+                    {/* Edit */}
                     <Link
                       to={`/rooms/${room._id}/edit`}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
                     >
                       <Pencil size={16} />
                       Edit
                     </Link>
 
+                    {/* Delete */}
                     <button
                       type="button"
-                      onClick={() => handleDelete(room._id)}
-                      disabled={deletingId === room._id}
+                      onClick={() =>
+                        handleDeleteClick(room)
+                      }
+                      disabled={
+                        deletingId === room._id
+                      }
                       className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <Trash2 size={16} />
 
-                      {deletingId === room._id
-                        ? "Deleting..."
-                        : "Delete"}
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -204,6 +272,82 @@ function MyListings() {
           </div>
         )}
       </div>
+
+      {/* =================================================
+          DELETE CONFIRMATION MODAL
+      ================================================= */}
+
+      {deleteRoom && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <AlertTriangle size={22} />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Delete Room?
+                  </h2>
+
+                  <p className="text-sm text-slate-500">
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteRoom(null)
+                }
+                disabled={deletingId !== null}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <X size={19} />
+              </button>
+            </div>
+
+            {/* Room Info */}
+            <div className="mt-6 rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">
+                You are about to delete:
+              </p>
+
+              <p className="mt-1 font-bold text-slate-900">
+                {deleteRoom.roomName}
+              </p>
+            </div>
+
+            {/* Buttons */}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteRoom(null)
+                }
+                disabled={deletingId !== null}
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deletingId !== null}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deletingId !== null
+                  ? "Deleting..."
+                  : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
