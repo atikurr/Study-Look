@@ -52,7 +52,11 @@ function FilterContent({
 }) {
   return (
     <div className="space-y-7">
-      {/* Amenities */}
+
+      {/* ==========================================
+          AMENITIES
+      ========================================== */}
+
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-900">
@@ -62,7 +66,9 @@ function FilterContent({
           {selectedAmenities.length > 0 && (
             <button
               type="button"
-              onClick={() => setSelectedAmenities([])}
+              onClick={() =>
+                setSelectedAmenities([])
+              }
               className="text-xs font-semibold text-blue-600 hover:text-blue-700"
             >
               Clear
@@ -78,7 +84,9 @@ function FilterContent({
             >
               <input
                 type="checkbox"
-                checked={selectedAmenities.includes(amenity)}
+                checked={selectedAmenities.includes(
+                  amenity
+                )}
                 onChange={() =>
                   handleAmenityChange(amenity)
                 }
@@ -95,7 +103,10 @@ function FilterContent({
 
       <div className="h-px bg-slate-200" />
 
-      {/* Floor */}
+      {/* ==========================================
+          FLOOR
+      ========================================== */}
+
       <div>
         <label
           htmlFor="floor"
@@ -108,7 +119,9 @@ function FilterContent({
           <select
             id="floor"
             value={floor}
-            onChange={(e) => setFloor(e.target.value)}
+            onChange={(event) =>
+              setFloor(event.target.value)
+            }
             className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
           >
             {FLOOR_OPTIONS.map((item) => (
@@ -130,14 +143,19 @@ function FilterContent({
 
       <div className="h-px bg-slate-200" />
 
-      {/* Hourly Rate */}
+      {/* ==========================================
+          HOURLY RATE
+      ========================================== */}
+
       <div>
         <h3 className="mb-3 text-sm font-bold text-slate-900">
           Hourly Rate
         </h3>
 
         <div className="grid grid-cols-2 gap-3">
+
           {/* Minimum */}
+
           <div>
             <label
               htmlFor="minRate"
@@ -156,8 +174,8 @@ function FilterContent({
                 type="number"
                 min="0"
                 value={minRate}
-                onChange={(e) =>
-                  setMinRate(e.target.value)
+                onChange={(event) =>
+                  setMinRate(event.target.value)
                 }
                 placeholder="0"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 pl-7 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
@@ -166,6 +184,7 @@ function FilterContent({
           </div>
 
           {/* Maximum */}
+
           <div>
             <label
               htmlFor="maxRate"
@@ -184,8 +203,8 @@ function FilterContent({
                 type="number"
                 min="0"
                 value={maxRate}
-                onChange={(e) =>
-                  setMaxRate(e.target.value)
+                onChange={(event) =>
+                  setMaxRate(event.target.value)
                 }
                 placeholder="100"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 pl-7 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
@@ -195,7 +214,10 @@ function FilterContent({
         </div>
       </div>
 
-      {/* Clear Filters */}
+      {/* ==========================================
+          CLEAR FILTERS
+      ========================================== */}
+
       {filterCount > 0 && (
         <button
           type="button"
@@ -218,16 +240,25 @@ function Rooms() {
   useTitle("Available Rooms");
 
   const [rooms, setRooms] = useState([]);
+
   const [search, setSearch] = useState("");
+
   const [selectedAmenities, setSelectedAmenities] =
     useState([]);
+
   const [floor, setFloor] = useState("all");
+
   const [minRate, setMinRate] = useState("");
+
   const [maxRate, setMaxRate] = useState("");
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
+
   const [mobileFiltersOpen, setMobileFiltersOpen] =
     useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
 
   /* =====================================================
@@ -245,7 +276,10 @@ function Rooms() {
         const params = new URLSearchParams();
 
         if (search.trim()) {
-          params.set("search", search.trim());
+          params.set(
+            "search",
+            search.trim()
+          );
         }
 
         if (selectedAmenities.length > 0) {
@@ -267,39 +301,45 @@ function Rooms() {
           params.set("maxRate", maxRate);
         }
 
-        const queryString = params.toString();
+        const queryString =
+          params.toString();
 
         const url = queryString
           ? `/api/rooms?${queryString}`
           : "/api/rooms";
 
         const response = await fetch(url, {
+          method: "GET",
           signal: controller.signal,
         });
 
+        const data = await response
+          .json()
+          .catch(() => null);
+
         if (!response.ok) {
           throw new Error(
-            "Failed to fetch rooms"
+            data?.message ||
+              "Failed to fetch rooms."
           );
         }
 
-        const data = await response.json();
-
-        if (data.success) {
-          setRooms(
-            Array.isArray(data.rooms)
-              ? data.rooms
-              : []
-          );
-        } else {
-          setRooms([]);
-          setError(
-            data.message ||
-              "Failed to load rooms"
+        if (!data?.success) {
+          throw new Error(
+            data?.message ||
+              "Failed to load rooms."
           );
         }
+
+        setRooms(
+          Array.isArray(data.rooms)
+            ? data.rooms
+            : []
+        );
       } catch (error) {
-        if (error.name === "AbortError") {
+        if (
+          error.name === "AbortError"
+        ) {
           return;
         }
 
@@ -309,7 +349,8 @@ function Rooms() {
         );
 
         setError(
-          "Unable to load study rooms right now."
+          error.message ||
+            "Unable to load study rooms right now."
         );
 
         setRooms([]);
@@ -336,16 +377,28 @@ function Rooms() {
      AMENITY TOGGLE
   ===================================================== */
 
-  const handleAmenityChange = (amenity) => {
-    setSelectedAmenities((previous) => {
-      if (previous.includes(amenity)) {
-        return previous.filter(
-          (item) => item !== amenity
-        );
-      }
+  const handleAmenityChange = (
+    amenity
+  ) => {
+    setSelectedAmenities(
+      (previous) => {
+        if (
+          previous.includes(amenity)
+        ) {
+          return previous.filter(
+            (item) =>
+              item !== amenity
+          );
+        }
 
-      return [...previous, amenity];
-    });
+        return [
+          ...previous,
+          amenity,
+        ];
+      }
+    );
+
+    setCurrentPage(1);
   };
 
   /* =====================================================
@@ -372,7 +425,8 @@ function Rooms() {
       count += 1;
     }
 
-    count += selectedAmenities.length;
+    count +=
+      selectedAmenities.length;
 
     if (floor !== "all") {
       count += 1;
@@ -405,19 +459,24 @@ function Rooms() {
 
   const activePage =
     totalPages > 0
-      ? Math.min(currentPage, totalPages)
+      ? Math.min(
+          currentPage,
+          totalPages
+        )
       : 1;
 
   const startIndex =
-    (activePage - 1) * ROOMS_PER_PAGE;
+    (activePage - 1) *
+    ROOMS_PER_PAGE;
 
   const endIndex =
     startIndex + ROOMS_PER_PAGE;
 
-  const currentRooms = rooms.slice(
-    startIndex,
-    endIndex
-  );
+  const currentRooms =
+    rooms.slice(
+      startIndex,
+      endIndex
+    );
 
   const showingStart =
     rooms.length === 0
@@ -430,7 +489,10 @@ function Rooms() {
   );
 
   const goToPage = (page) => {
-    if (page < 1 || page > totalPages) {
+    if (
+      page < 1 ||
+      page > totalPages
+    ) {
       return;
     }
 
@@ -448,11 +510,16 @@ function Rooms() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* HEADER */}
+
+      {/* ==========================================
+          HEADER
+      ========================================== */}
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
+
           <div className="max-w-3xl">
+
             <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-600">
               <DoorOpen size={15} />
               StudyNook Rooms
@@ -467,20 +534,26 @@ function Rooms() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500">
-              Search and filter comfortable study
-              rooms based on your preferred
-              amenities, floor, and hourly budget.
+              Search and filter comfortable
+              study rooms based on your
+              preferred amenities, floor,
+              and hourly budget.
             </p>
           </div>
         </div>
       </section>
 
-      {/* SEARCH BAR */}
+      {/* ==========================================
+          SEARCH BAR
+      ========================================== */}
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+
           <div className="flex flex-col gap-3 sm:flex-row">
+
             <div className="relative flex-1">
+
               <Search
                 size={19}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
@@ -489,9 +562,12 @@ function Rooms() {
               <input
                 type="search"
                 value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
+                onChange={(event) => {
+                  setSearch(
+                    event.target.value
+                  );
+                  setCurrentPage(1);
+                }}
                 placeholder="Search by room name..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-11 py-3.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50"
               />
@@ -499,8 +575,12 @@ function Rooms() {
               {search && (
                 <button
                   type="button"
-                  onClick={() => setSearch("")}
+                  onClick={() => {
+                    setSearch("");
+                    setCurrentPage(1);
+                  }}
                   className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+                  aria-label="Clear search"
                 >
                   <X size={15} />
                 </button>
@@ -512,11 +592,15 @@ function Rooms() {
             <button
               type="button"
               onClick={() =>
-                setMobileFiltersOpen(true)
+                setMobileFiltersOpen(
+                  true
+                )
               }
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 lg:hidden"
             >
-              <SlidersHorizontal size={18} />
+              <SlidersHorizontal
+                size={18}
+              />
 
               Filters
 
@@ -530,14 +614,22 @@ function Rooms() {
         </div>
       </section>
 
-      {/* MAIN CONTENT */}
+      {/* ==========================================
+          MAIN CONTENT
+      ========================================== */}
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+
         <div className="grid gap-8 lg:grid-cols-[250px_1fr]">
-          {/* DESKTOP FILTER SIDEBAR */}
+
+          {/* ========================================
+              DESKTOP FILTER SIDEBAR
+          ======================================== */}
 
           <aside className="hidden h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:block">
+
             <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+
               <div className="flex items-center gap-2">
                 <SlidersHorizontal
                   size={18}
@@ -567,22 +659,35 @@ function Rooms() {
                 setSelectedAmenities
               }
               floor={floor}
-              setFloor={setFloor}
+              setFloor={(value) => {
+                setFloor(value);
+                setCurrentPage(1);
+              }}
               minRate={minRate}
-              setMinRate={setMinRate}
+              setMinRate={(value) => {
+                setMinRate(value);
+                setCurrentPage(1);
+              }}
               maxRate={maxRate}
-              setMaxRate={setMaxRate}
+              setMaxRate={(value) => {
+                setMaxRate(value);
+                setCurrentPage(1);
+              }}
               filterCount={filterCount}
               clearFilters={clearFilters}
             />
           </aside>
 
-          {/* RESULTS */}
+          {/* ========================================
+              RESULTS
+          ======================================== */}
 
           <div className="min-w-0">
+
             {/* Results Header */}
 
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+
               <p className="text-sm text-slate-500">
                 {loading
                   ? "Finding rooms..."
@@ -594,46 +699,57 @@ function Rooms() {
               {filterCount > 0 && (
                 <button
                   type="button"
-                  onClick={clearFilters}
+                  onClick={
+                    clearFilters
+                  }
                   className="hidden items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 sm:flex"
                 >
-                  <RotateCcw size={15} />
+                  <RotateCcw
+                    size={15}
+                  />
                   Clear filters
                 </button>
               )}
             </div>
 
-            {/* LOADING */}
+            {/* ======================================
+                LOADING
+            ====================================== */}
 
             {loading && (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 6 }).map(
-                  (_, index) => (
-                    <div
-                      key={index}
-                      className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
-                    >
-                      <div className="h-56 animate-pulse bg-slate-200" />
 
-                      <div className="space-y-4 p-5">
-                        <div className="h-5 w-2/3 animate-pulse rounded bg-slate-200" />
+                {Array.from({
+                  length: 6,
+                }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                  >
+                    <div className="h-56 animate-pulse bg-slate-200" />
 
-                        <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
+                    <div className="space-y-4 p-5">
 
-                        <div className="h-4 w-1/2 animate-pulse rounded bg-slate-100" />
+                      <div className="h-5 w-2/3 animate-pulse rounded bg-slate-200" />
 
-                        <div className="h-10 w-full animate-pulse rounded-xl bg-slate-200" />
-                      </div>
+                      <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
+
+                      <div className="h-4 w-1/2 animate-pulse rounded bg-slate-100" />
+
+                      <div className="h-10 w-full animate-pulse rounded-xl bg-slate-200" />
                     </div>
-                  )
-                )}
+                  </div>
+                ))}
               </div>
             )}
 
-            {/* ERROR */}
+            {/* ======================================
+                ERROR
+            ====================================== */}
 
             {!loading && error && (
               <div className="rounded-2xl border border-red-100 bg-white px-6 py-16 text-center shadow-sm">
+
                 <h3 className="text-lg font-bold text-slate-900">
                   Something went wrong
                 </h3>
@@ -644,7 +760,9 @@ function Rooms() {
 
                 <button
                   type="button"
-                  onClick={clearFilters}
+                  onClick={
+                    clearFilters
+                  }
                   className="mt-5 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600"
                 >
                   Reset Filters
@@ -652,87 +770,116 @@ function Rooms() {
               </div>
             )}
 
-            {/* ROOMS */}
+            {/* ======================================
+                ROOMS
+            ====================================== */}
 
             {!loading &&
               !error &&
               currentRooms.length > 0 && (
                 <>
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {currentRooms.map((room) => (
-                      <RoomCard
-                        key={room._id}
-                        room={room}
-                      />
-                    ))}
+                    {currentRooms.map(
+                      (room) => (
+                        <RoomCard
+                          key={room._id}
+                          room={room}
+                        />
+                      )
+                    )}
                   </div>
 
                   {/* PAGINATION */}
 
                   {totalPages > 1 && (
-                    <div className="mt-10 flex items-center justify-center gap-2">
-                      {/* Previous */}
+                    <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+
+                      {/* PREVIOUS */}
 
                       <button
                         type="button"
                         onClick={() =>
-                          goToPage(activePage - 1)
+                          goToPage(
+                            activePage - 1
+                          )
                         }
-                        disabled={activePage === 1}
+                        disabled={
+                          activePage ===
+                          1
+                        }
                         aria-label="Previous page"
                         className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <ChevronLeft size={18} />
+                        <ChevronLeft
+                          size={18}
+                        />
                       </button>
 
-                      {/* Page Numbers */}
+                      {/* PAGE NUMBERS */}
 
                       {Array.from(
-                        { length: totalPages },
-                        (_, index) => index + 1
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          type="button"
-                          onClick={() =>
-                            goToPage(page)
-                          }
-                          className={`flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-sm font-bold transition ${
-                            activePage === page
-                              ? "bg-blue-600 text-white shadow-sm"
-                              : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                        {
+                          length:
+                            totalPages,
+                        },
+                        (_, index) =>
+                          index + 1
+                      ).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            type="button"
+                            onClick={() =>
+                              goToPage(
+                                page
+                              )
+                            }
+                            className={`flex h-10 min-w-10 items-center justify-center rounded-xl px-3 text-sm font-bold transition ${
+                              activePage ===
+                              page
+                                ? "bg-blue-600 text-white shadow-sm"
+                                : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
 
-                      {/* Next */}
+                      {/* NEXT */}
 
                       <button
                         type="button"
                         onClick={() =>
-                          goToPage(activePage + 1)
+                          goToPage(
+                            activePage + 1
+                          )
                         }
                         disabled={
-                          activePage === totalPages
+                          activePage ===
+                          totalPages
                         }
                         aria-label="Next page"
                         className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <ChevronRight size={18} />
+                        <ChevronRight
+                          size={18}
+                        />
                       </button>
                     </div>
                   )}
                 </>
               )}
 
-            {/* EMPTY */}
+            {/* ======================================
+                EMPTY
+            ====================================== */}
 
             {!loading &&
               !error &&
               rooms.length === 0 && (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
+
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
                     <Search size={25} />
                   </div>
@@ -743,16 +890,21 @@ function Rooms() {
 
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
                     We couldn't find any study
-                    rooms matching your current
-                    search and filters.
+                    rooms matching your
+                    current search and
+                    filters.
                   </p>
 
                   <button
                     type="button"
-                    onClick={clearFilters}
+                    onClick={
+                      clearFilters
+                    }
                     className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-600"
                   >
-                    <RotateCcw size={16} />
+                    <RotateCcw
+                      size={16}
+                    />
                     Reset Search
                   </button>
                 </div>
@@ -761,19 +913,29 @@ function Rooms() {
         </div>
       </section>
 
-      {/* MOBILE FILTER DRAWER */}
+      {/* ==========================================
+          MOBILE FILTER DRAWER
+      ========================================== */}
 
       {mobileFiltersOpen && (
         <>
+          {/* Overlay */}
+
           <div
             className="fixed inset-0 z-[150] bg-slate-950/50 backdrop-blur-sm lg:hidden"
             onClick={() =>
-              setMobileFiltersOpen(false)
+              setMobileFiltersOpen(
+                false
+              )
             }
           />
 
+          {/* Drawer */}
+
           <aside className="fixed bottom-0 left-0 right-0 z-[200] max-h-[90vh] overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl lg:hidden">
+
             <div className="mb-6 flex items-center justify-between">
+
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
                   Filters
@@ -787,9 +949,12 @@ function Rooms() {
               <button
                 type="button"
                 onClick={() =>
-                  setMobileFiltersOpen(false)
+                  setMobileFiltersOpen(
+                    false
+                  )
                 }
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+                aria-label="Close filters"
               >
                 <X size={20} />
               </button>
@@ -802,15 +967,29 @@ function Rooms() {
               handleAmenityChange={
                 handleAmenityChange
               }
-              setSelectedAmenities={
-                setSelectedAmenities
-              }
+              setSelectedAmenities={(
+                value
+              ) => {
+                setSelectedAmenities(
+                  value
+                );
+                setCurrentPage(1);
+              }}
               floor={floor}
-              setFloor={setFloor}
+              setFloor={(value) => {
+                setFloor(value);
+                setCurrentPage(1);
+              }}
               minRate={minRate}
-              setMinRate={setMinRate}
+              setMinRate={(value) => {
+                setMinRate(value);
+                setCurrentPage(1);
+              }}
               maxRate={maxRate}
-              setMaxRate={setMaxRate}
+              setMaxRate={(value) => {
+                setMaxRate(value);
+                setCurrentPage(1);
+              }}
               filterCount={filterCount}
               clearFilters={clearFilters}
             />
@@ -818,7 +997,9 @@ function Rooms() {
             <button
               type="button"
               onClick={() =>
-                setMobileFiltersOpen(false)
+                setMobileFiltersOpen(
+                  false
+                )
               }
               className="mt-6 w-full rounded-xl bg-slate-950 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-600"
             >

@@ -5,17 +5,38 @@ import { MongoClient } from "mongodb";
 
 dotenv.config();
 
-const client = new MongoClient(process.env.MONGODB_URI);
+// ==========================================
+// MongoDB
+// ==========================================
+
+const client = new MongoClient(
+  process.env.MONGODB_URI
+);
 
 const db = client.db("studynook");
 
-// CLIENT_URL can hold one or more comma-separated origins
+// ==========================================
+// Trusted Origins
+// ==========================================
+
 const trustedOrigins = [
   ...(process.env.CLIENT_URL || "").split(","),
+
   "http://localhost:5173",
+
+  "https://study-look.vercel.app",
 ]
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+// Remove duplicate origins
+const uniqueTrustedOrigins = [
+  ...new Set(trustedOrigins),
+];
+
+// ==========================================
+// Better Auth
+// ==========================================
 
 const auth = betterAuth({
   database: mongodbAdapter(db, {
@@ -24,21 +45,37 @@ const auth = betterAuth({
 
   baseURL: process.env.BETTER_AUTH_URL,
 
-  trustedOrigins,
+  trustedOrigins: uniqueTrustedOrigins,
+
+  // ========================================
+  // Email / Password Authentication
+  // ========================================
 
   emailAndPassword: {
     enabled: true,
   },
 
+  // ========================================
+  // Google Authentication
+  // ========================================
+
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId:
+        process.env.GOOGLE_CLIENT_ID,
+
+      clientSecret:
+        process.env.GOOGLE_CLIENT_SECRET,
     },
   },
 
+  // ========================================
+  // Production Cookie Settings
+  // ========================================
+
   advanced: {
-    useSecureCookies: process.env.NODE_ENV === "production",
+    useSecureCookies:
+      process.env.NODE_ENV === "production",
   },
 });
 

@@ -12,7 +12,6 @@ import {
   CalendarDays,
   Info,
 } from "lucide-react";
-import { authClient } from "../lib/auth-client";
 import toast from "react-hot-toast";
 
 function ProfileAvatar({ user, size = "small" }) {
@@ -28,7 +27,6 @@ function ProfileAvatar({ user, size = "small" }) {
       ? "h-11 w-11 text-sm"
       : "h-9 w-9 text-sm";
 
-  // No profile image / broken image
   if (!imageUrl || imageError) {
     return (
       <div
@@ -88,16 +86,12 @@ function Navbar() {
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await fetch(
-          "/api/auth/me",
-          {
-            credentials: "include",
-          }
-        );
+        const response = await fetch("/api/auth/me", {
+          credentials: "include",
+        });
 
         if (response.ok) {
           const data = await response.json();
-
           setUser(data?.user || null);
         } else {
           setUser(null);
@@ -145,77 +139,66 @@ function Navbar() {
   }, []);
 
   // ==========================================
-  // CLOSE MENUS WHEN ROUTE CHANGES
-  // ==========================================
-
- useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (
-      profileRef.current &&
-      !profileRef.current.contains(event.target)
-    ) {
-      setProfileOpen(false);
-    }
-  };
-
-  document.addEventListener(
-    "mousedown",
-    handleClickOutside
-  );
-
-  return () => {
-    document.removeEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-  };
-}, []);
-
-  // ==========================================
   // LOGOUT
   // ==========================================
 
   const handleLogout = async () => {
     try {
-      // Better Auth logout
-      try {
-        await authClient.signOut();
-      } catch (error) {
-        console.error(
-          "Better Auth logout error:",
-          error
-        );
-      }
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      // Assignment JWT logout
-      const response = await fetch(
-        "/api/auth/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      const data = await response
+        .json()
+        .catch(() => null);
 
       if (!response.ok) {
-        toast.error("Logout failed");
+        console.error(
+          "Logout API failed:",
+          data
+        );
+
+        toast.error(
+          data?.message || "Logout failed",
+          {
+            id: "logout-error",
+          }
+        );
+
         return;
       }
 
+      // Clear frontend state
       setUser(null);
       setProfileOpen(false);
       setMobileOpen(false);
 
-      toast.success("Logged out successfully", {
-        id: "logout-success",
-      });
+      toast.success(
+        "Logged out successfully",
+        {
+          id: "logout-success",
+        }
+      );
 
-      navigate("/");
+      navigate("/", {
+        replace: true,
+      });
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error(
+        "Logout error:",
+        error
+      );
 
-      toast.error("Something went wrong", {
-        id: "logout-error",
-      });
+      toast.error(
+        "Something went wrong during logout.",
+        {
+          id: "logout-error",
+        }
+      );
     }
   };
 
@@ -279,6 +262,7 @@ function Navbar() {
             ================================== */}
 
             <nav className="hidden items-center gap-1 lg:flex">
+
               {/* Home */}
 
               <Link
@@ -303,13 +287,19 @@ function Navbar() {
 
               {!loading && user && (
                 <>
+                  {/* Add Room */}
+
                   <Link
                     to="/add-room"
-                    className={navLinkClass("/add-room")}
+                    className={navLinkClass(
+                      "/add-room"
+                    )}
                   >
                     <PlusCircle size={17} />
                     Add Room
                   </Link>
+
+                  {/* My Listings */}
 
                   <Link
                     to="/my-listings"
@@ -320,6 +310,8 @@ function Navbar() {
                     <ClipboardList size={17} />
                     My Listings
                   </Link>
+
+                  {/* My Bookings */}
 
                   <Link
                     to="/my-bookings"
@@ -344,6 +336,7 @@ function Navbar() {
                   ref={profileRef}
                   className="relative"
                 >
+
                   {/* Profile Button */}
 
                   <button
@@ -382,6 +375,7 @@ function Navbar() {
 
                   {profileOpen && (
                     <div className="absolute right-0 top-full z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+
                       {/* User Info */}
 
                       <div className="border-b border-slate-100 px-4 py-4">
@@ -406,6 +400,9 @@ function Navbar() {
                       {/* Dropdown Links */}
 
                       <div className="p-2">
+
+                        {/* My Listings */}
+
                         <Link
                           to="/my-listings"
                           onClick={() =>
@@ -416,6 +413,8 @@ function Navbar() {
                           <ClipboardList size={17} />
                           My Listings
                         </Link>
+
+                        {/* My Bookings */}
 
                         <Link
                           to="/my-bookings"
@@ -471,7 +470,9 @@ function Navbar() {
 
             <button
               type="button"
-              onClick={() => setMobileOpen(true)}
+              onClick={() =>
+                setMobileOpen(true)
+              }
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
               aria-label="Open navigation menu"
             >
@@ -491,6 +492,7 @@ function Navbar() {
           {/* Mobile Header */}
 
           <div className="flex h-19 items-center justify-between border-b border-slate-200 px-4 sm:px-6">
+
             <Link
               to="/"
               onClick={() =>
@@ -645,11 +647,12 @@ function Navbar() {
                   </div>
                 </>
               ) : (
-                /* ==================================
-                   MOBILE LOGIN / REGISTER
-                ================================== */
+                /* Mobile Login / Register */
 
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6">
+
+                  {/* Login */}
+
                   <Link
                     to="/login"
                     onClick={() =>
@@ -659,6 +662,8 @@ function Navbar() {
                   >
                     Login
                   </Link>
+
+                  {/* Register */}
 
                   <Link
                     to="/register"

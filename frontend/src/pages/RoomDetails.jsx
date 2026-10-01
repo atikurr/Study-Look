@@ -33,64 +33,47 @@ function RoomDetails() {
   const [deleting, setDeleting] = useState(false);
 
   // =====================================================
-  // FETCH ROOM + CURRENT USER
+  // FETCH ROOM
   // =====================================================
 
   useEffect(() => {
-    const fetchData = async () => {
+    let cancelled = false;
+
+    const fetchRoom = async () => {
       try {
         setLoading(true);
-        setUserLoading(true);
         setError("");
 
-        const [roomResponse, userResponse] =
-          await Promise.all([
-            fetch(
-              `/api/rooms/${id}`
-            ),
-            fetch(
-              "/api/auth/me",
-              {
-                credentials: "include",
-              }
-            ),
-          ]);
+        const response = await fetch(
+          `/api/rooms/${id}`
+        );
 
-        // ==============================
-        // ROOM
-        // ==============================
+        const data = await response
+          .json()
+          .catch(() => null);
 
-        const roomData =
-          await roomResponse.json();
+        if (!response.ok || !data?.success) {
+          if (!cancelled) {
+            setError(
+              data?.message ||
+                "Room not found."
+            );
+            setRoom(null);
+          }
 
-        if (!roomResponse.ok || !roomData.success) {
-          setError(
-            roomData.message || "Room not found"
-          );
-          setRoom(null);
-        } else {
-          setRoom(roomData.room);
+          return;
         }
 
-        // ==============================
-        // CURRENT USER
-        // ==============================
-
-        if (userResponse.ok) {
-          const userData =
-            await userResponse.json();
-
-          if (userData.success && userData.user) {
-            setUser(userData.user);
-          } else {
-            setUser(null);
-          }
-        } else {
-          setUser(null);
+        if (!cancelled) {
+          setRoom(data.room);
         }
       } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
         console.error(
-          "Failed to load room details:",
+          "Failed to load room:",
           error
         );
 
@@ -99,50 +82,121 @@ function RoomDetails() {
         );
 
         setRoom(null);
-        setUser(null);
       } finally {
-        setLoading(false);
-        setUserLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchData();
+    if (id) {
+      fetchRoom();
+    }
 
-    // Initial data fetching intentionally updates state.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
+
+  // =====================================================
+  // FETCH CURRENT USER
+  // =====================================================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCurrentUser = async () => {
+      try {
+        setUserLoading(true);
+
+        const response = await fetch(
+          "/api/auth/me",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setUser(null);
+          }
+
+          return;
+        }
+
+        const data = await response
+          .json()
+          .catch(() => null);
+
+        if (!cancelled) {
+          if (
+            data?.success &&
+            data?.user
+          ) {
+            setUser(data.user);
+          } else {
+            setUser(null);
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Failed to get current user:",
+          error
+        );
+
+        if (!cancelled) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setUserLoading(false);
+        }
+      }
+    };
+
+    fetchCurrentUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // =====================================================
   // OWNER CHECK
   // =====================================================
 
-  const userId = user?._id || user?.id;
+  const userId =
+    user?._id || user?.id;
 
   const ownerId =
     typeof room?.ownerId === "object"
-      ? room?.ownerId?._id
+      ? room?.ownerId?._id ||
+        room?.ownerId?.id
       : room?.ownerId;
 
   const isOwner =
-    userId &&
-    ownerId &&
-    String(userId) === String(ownerId);
+    Boolean(userId) &&
+    Boolean(ownerId) &&
+    String(userId) ===
+      String(ownerId);
 
   // =====================================================
   // DELETE ROOM
   // =====================================================
 
   const handleDeleteRoom = async () => {
-    if (!room) {
+    if (!room?._id || deleting) {
       return;
     }
 
     try {
       setDeleting(true);
 
-      const loadingToast = toast.loading(
-        "Deleting room..."
-      );
+      const loadingToast =
+        toast.loading(
+          "Deleting room..."
+        );
 
       const response = await fetch(
         `/api/rooms/${room._id}`,
@@ -152,23 +206,29 @@ function RoomDetails() {
         }
       );
 
-      const data = await response.json();
+      const data = await response
+        .json()
+        .catch(() => null);
 
       toast.dismiss(loadingToast);
 
-      if (!response.ok || !data.success) {
+      if (
+        !response.ok ||
+        !data?.success
+      ) {
         toast.error(
-          data.message ||
+          data?.message ||
             "Failed to delete room."
         );
+
         return;
       }
+
+      setDeleteOpen(false);
 
       toast.success(
         "Room deleted successfully."
       );
-
-      setDeleteOpen(false);
 
       navigate("/my-listings", {
         replace: true,
@@ -207,6 +267,7 @@ function RoomDetails() {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4">
         <div className="text-center">
+
           <h1 className="text-3xl font-bold text-slate-900">
             Room Not Found
           </h1>
@@ -230,10 +291,12 @@ function RoomDetails() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* ==============================
+
+        {/* ==========================================
             BACK
-        ============================== */}
+        ========================================== */}
 
         <Link
           to="/rooms"
@@ -244,18 +307,23 @@ function RoomDetails() {
         </Link>
 
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          {/* ==============================
+
+          {/* ==========================================
               IMAGE
-          ============================== */}
+          ========================================== */}
 
           <div className="h-72 w-full overflow-hidden bg-slate-100 md:h-[420px]">
+
             {room.image ? (
               <img
                 src={room.image}
-                alt={room.roomName}
+                alt={
+                  room.roomName ||
+                  "Study room"
+                }
                 className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display =
+                onError={(event) => {
+                  event.currentTarget.style.display =
                     "none";
                 }}
               />
@@ -266,15 +334,18 @@ function RoomDetails() {
             )}
           </div>
 
-          {/* ==============================
+          {/* ==========================================
               CONTENT
-          ============================== */}
+          ========================================== */}
 
           <div className="p-6 md:p-10">
+
             {/* HEADER */}
 
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+
               <div>
+
                 <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
                   Study Room
                 </p>
@@ -292,6 +363,7 @@ function RoomDetails() {
               {/* PRICE */}
 
               <div className="shrink-0 rounded-2xl bg-slate-900 px-6 py-4 text-center text-white">
+
                 <p className="text-2xl font-bold">
                   ${room.hourlyRate}
                 </p>
@@ -302,12 +374,13 @@ function RoomDetails() {
               </div>
             </div>
 
-            {/* ==============================
+            {/* ==========================================
                 OWNER ACTIONS
-            ============================== */}
+            ========================================== */}
 
             {isOwner && (
               <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+
                 <div>
                   <p className="font-semibold text-slate-900">
                     You own this room
@@ -319,6 +392,9 @@ function RoomDetails() {
                 </div>
 
                 <div className="flex gap-3">
+
+                  {/* EDIT */}
+
                   <Link
                     to={`/rooms/${room._id}/edit`}
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
@@ -326,6 +402,8 @@ function RoomDetails() {
                     <Pencil size={16} />
                     Edit
                   </Link>
+
+                  {/* DELETE */}
 
                   <button
                     type="button"
@@ -341,14 +419,16 @@ function RoomDetails() {
               </div>
             )}
 
-            {/* ==============================
+            {/* ==========================================
                 ROOM INFO
-            ============================== */}
+            ========================================== */}
 
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+
               {/* FLOOR */}
 
               <div className="rounded-2xl bg-slate-50 p-5">
+
                 <MapPin
                   className="text-slate-700"
                   size={22}
@@ -359,13 +439,15 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  {room.floor || "N/A"}
+                  {room.floor ||
+                    "N/A"}
                 </p>
               </div>
 
               {/* CAPACITY */}
 
               <div className="rounded-2xl bg-slate-50 p-5">
+
                 <Users
                   className="text-slate-700"
                   size={22}
@@ -376,13 +458,16 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  {room.capacity || 0} people
+                  {room.capacity ||
+                    0}{" "}
+                  people
                 </p>
               </div>
 
               {/* RATE */}
 
               <div className="rounded-2xl bg-slate-50 p-5">
+
                 <Clock3
                   className="text-slate-700"
                   size={22}
@@ -393,13 +478,17 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  ${room.hourlyRate || 0} / hour
+                  $
+                  {room.hourlyRate ||
+                    0}{" "}
+                  / hour
                 </p>
               </div>
 
               {/* BOOKING COUNT */}
 
               <div className="rounded-2xl bg-slate-50 p-5">
+
                 <CalendarCheck
                   className="text-slate-700"
                   size={22}
@@ -410,24 +499,34 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  {room.bookingCount || 0}
+                  {room.bookingCount ||
+                    0}
                 </p>
               </div>
             </div>
 
-            {/* ==============================
+            {/* ==========================================
                 AMENITIES
-            ============================== */}
+            ========================================== */}
 
             <div className="mt-10">
+
               <h2 className="text-2xl font-bold text-slate-900">
                 Amenities
               </h2>
 
-              {room.amenities?.length > 0 ? (
+              {Array.isArray(
+                room.amenities
+              ) &&
+              room.amenities.length >
+                0 ? (
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+
                   {room.amenities.map(
-                    (amenity, index) => (
+                    (
+                      amenity,
+                      index
+                    ) => (
                       <div
                         key={`${amenity}-${index}`}
                         className="flex items-center gap-3 rounded-xl border border-slate-200 p-4"
@@ -451,20 +550,21 @@ function RoomDetails() {
               )}
             </div>
 
-            {/* ==============================
+            {/* ==========================================
                 BOOKING
-            ============================== */}
+            ========================================== */}
 
             <div className="mt-10 border-t border-slate-200 pt-8">
+
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">
                     Ready to book this room?
                   </h2>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Choose your date and time slot to
-                    reserve this study space.
+                    Choose your date and time slot to reserve this study space.
                   </p>
                 </div>
 
@@ -494,19 +594,25 @@ function RoomDetails() {
         </div>
       </main>
 
-      {/* ==============================
-          DELETE CONFIRMATION MODAL
-      ============================== */}
+      {/* ==========================================
+          DELETE MODAL
+      ========================================== */}
 
       {deleteOpen && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            {/* HEADER */}
+
+            {/* MODAL HEADER */}
 
             <div className="flex items-start justify-between gap-4">
+
               <div className="flex items-center gap-3">
+
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600">
-                  <AlertTriangle size={22} />
+                  <AlertTriangle
+                    size={22}
+                  />
                 </div>
 
                 <div>
@@ -527,14 +633,16 @@ function RoomDetails() {
                 }
                 disabled={deleting}
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Close delete modal"
               >
                 <X size={19} />
               </button>
             </div>
 
-            {/* ROOM */}
+            {/* ROOM NAME */}
 
             <div className="mt-6 rounded-xl bg-slate-50 p-4">
+
               <p className="text-sm text-slate-500">
                 You are about to delete:
               </p>
@@ -547,6 +655,7 @@ function RoomDetails() {
             {/* ACTIONS */}
 
             <div className="mt-6 flex gap-3">
+
               <button
                 type="button"
                 onClick={() =>
@@ -560,7 +669,9 @@ function RoomDetails() {
 
               <button
                 type="button"
-                onClick={handleDeleteRoom}
+                onClick={
+                  handleDeleteRoom
+                }
                 disabled={deleting}
                 className="flex-1 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >

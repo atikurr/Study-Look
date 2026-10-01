@@ -7,23 +7,44 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-/**
- * Create assignment JWT
- * JWT payload:
- * {
- *   userId: user._id
- * }
- */
+const isProduction =
+  process.env.NODE_ENV === "production";
+
+// ==========================================
+// COOKIE OPTIONS
+// ==========================================
+
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: "/",
+});
+
+// ==========================================
+// CREATE JWT
+// ==========================================
+
 router.post("/token", async (req, res) => {
   try {
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return res.status(401).json({
         success: false,
-        message: "Unauthorized",
+        message: "Unauthorized. Please login first.",
+      });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is missing.");
+
+      return res.status(500).json({
+        success: false,
+        message: "JWT configuration is missing.",
       });
     }
 
@@ -37,82 +58,112 @@ router.post("/token", async (req, res) => {
       }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie(
+      "token",
+      token,
+      getCookieOptions()
+    );
 
     return res.status(200).json({
       success: true,
-      message: "JWT token created successfully",
+      message: "JWT token created successfully.",
     });
   } catch (error) {
-    console.error("JWT token creation failed:", error.message);
+    console.error(
+      "JWT token creation failed:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
-      message: "Failed to create JWT token",
+      message: "Failed to create JWT token.",
     });
   }
 });
 
-/**
- * Get current logged-in user
- * Protected route
- */
-router.get("/me", authMiddleware, async (req, res) => {
-  try {
-    const session = await auth.api.getSession({
-      headers: fromNodeHeaders(req.headers),
-    });
+// ==========================================
+// GET CURRENT USER
+// Protected by JWT
+// ==========================================
 
-    if (!session?.user) {
-      return res.status(401).json({
+router.get(
+  "/me",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(req.headers),
+      });
+
+      if (!session?.user) {
+        return res.status(401).json({
+          success: false,
+          message: "User session not found.",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        user: session.user,
+      });
+    } catch (error) {
+      console.error(
+        "Get current user failed:",
+        error
+      );
+
+      return res.status(500).json({
         success: false,
-        message: "User session not found",
+        message: "Failed to get current user.",
       });
     }
-
-    return res.status(200).json({
-      success: true,
-      user: session.user,
-    });
-  } catch (error) {
-    console.error("Get current user failed:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to get current user",
-    });
   }
-});
+);
 
-/**
- * Logout
- * Clear assignment JWT cookie
- */
-router.post("/logout", async (req, res) => {
-  try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+// ==========================================
+// LOGOUT
+// ==========================================
 
-    return res.status(200).json({
-      success: true,
-      message: "Logout successful",
-    });
-  } catch (error) {
-    console.error("Logout failed:", error.message);
+router.post(
+  "/logout",
+  async (req, res) => {
+    try {
+      // Clear our JWT cookie
+      res.clearCookie(
+        "token",
+        getCookieOptions()
+      );
 
-    return res.status(500).json({
-      success: false,
-      message: "Logout failed",
-    });
+      // Also sign out from Better Auth
+      try {
+        await auth.api.signOut({
+          headers: fromNodeHeaders(
+            req.headers
+          ),
+        });
+      } catch (authError) {
+        console.error(
+          "Better Auth signout warning:",
+          authError.message
+        );
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Logout successful.",
+      });
+    } catch (error) {
+      console.error(
+        "Logout failed:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: "Logout failed.",
+      });
+    }
   }
-});
+);
 
 export default router;
