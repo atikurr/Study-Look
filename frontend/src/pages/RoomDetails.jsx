@@ -1,19 +1,37 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Users,
   MapPin,
   Clock3,
   CheckCircle2,
+  Pencil,
+  Trash2,
+  X,
+  AlertTriangle,
+  CalendarCheck,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 function RoomDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
+  const [user, setUser] = useState(null);
+
   const [loading, setLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
+
   const [error, setError] = useState("");
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  /* =====================================================
+     FETCH ROOM
+  ===================================================== */
 
   useEffect(() => {
     const fetchRoom = async () => {
@@ -35,6 +53,7 @@ function RoomDetails() {
         setRoom(data.room);
       } catch (error) {
         console.error("Failed to fetch room:", error);
+
         setError("Failed to load room details.");
       } finally {
         setLoading(false);
@@ -44,6 +63,96 @@ function RoomDetails() {
     fetchRoom();
   }, [id]);
 
+  /* =====================================================
+     FETCH CURRENT USER
+  ===================================================== */
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/auth/me",
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          setUser(null);
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to fetch current user:",
+          error
+        );
+
+        setUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  /* =====================================================
+     DELETE ROOM
+  ===================================================== */
+
+  const handleDeleteRoom = async () => {
+    if (!room) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+
+      const response = await fetch(
+        `http://localhost:5000/api/rooms/${room._id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        toast.error(
+          data.message || "Failed to delete room."
+        );
+        return;
+      }
+
+      toast.success("Room deleted successfully.");
+
+      setDeleteOpen(false);
+
+      navigate("/my-listings", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Delete room error:", error);
+
+      toast.error("Something went wrong.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  /* =====================================================
+     LOADING
+  ===================================================== */
+
   if (loading) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center bg-slate-50">
@@ -51,6 +160,10 @@ function RoomDetails() {
       </div>
     );
   }
+
+  /* =====================================================
+     ERROR
+  ===================================================== */
 
   if (error || !room) {
     return (
@@ -61,7 +174,8 @@ function RoomDetails() {
           </h1>
 
           <p className="mt-3 text-slate-500">
-            {error || "The room you are looking for does not exist."}
+            {error ||
+              "The room you are looking for does not exist."}
           </p>
 
           <Link
@@ -76,6 +190,13 @@ function RoomDetails() {
     );
   }
 
+  /* =====================================================
+     OWNER CHECK
+  ===================================================== */
+
+  const isOwner =
+    user && String(user.id) === String(room.ownerId);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -89,8 +210,11 @@ function RoomDetails() {
         </Link>
 
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          {/* Image */}
-          <div className="h-72 w-full overflow-hidden md:h-105">
+          {/* =================================================
+              IMAGE
+          ================================================= */}
+
+          <div className="h-72 w-full overflow-hidden md:h-[420px]">
             <img
               src={room.image}
               alt={room.roomName}
@@ -98,8 +222,12 @@ function RoomDetails() {
             />
           </div>
 
-          {/* Content */}
+          {/* =================================================
+              CONTENT
+          ================================================= */}
+
           <div className="p-6 md:p-10">
+            {/* Header */}
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
@@ -115,48 +243,131 @@ function RoomDetails() {
                 </p>
               </div>
 
+              {/* Price */}
               <div className="shrink-0 rounded-2xl bg-slate-900 px-6 py-4 text-center text-white">
                 <p className="text-2xl font-bold">
                   ${room.hourlyRate}
                 </p>
-                <p className="text-sm text-slate-300">per hour</p>
+
+                <p className="text-sm text-slate-300">
+                  per hour
+                </p>
               </div>
             </div>
 
-            {/* Room Info */}
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <MapPin className="text-slate-700" size={22} />
+            {/* =================================================
+                OWNER ACTIONS
+            ================================================= */}
 
-                <p className="mt-3 text-sm text-slate-500">Floor</p>
+            {isOwner && (
+              <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    You own this room
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    You can edit or delete this listing.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Link
+                    to={`/rooms/${room._id}/edit`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Pencil size={16} />
+                    Edit
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDeleteOpen(true)
+                    }
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* =================================================
+                ROOM INFO
+            ================================================= */}
+
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+              {/* Floor */}
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <MapPin
+                  className="text-slate-700"
+                  size={22}
+                />
+
+                <p className="mt-3 text-sm text-slate-500">
+                  Floor
+                </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
                   {room.floor}
                 </p>
               </div>
 
+              {/* Capacity */}
               <div className="rounded-2xl bg-slate-50 p-5">
-                <Users className="text-slate-700" size={22} />
+                <Users
+                  className="text-slate-700"
+                  size={22}
+                />
 
-                <p className="mt-3 text-sm text-slate-500">Capacity</p>
+                <p className="mt-3 text-sm text-slate-500">
+                  Capacity
+                </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
                   {room.capacity} people
                 </p>
               </div>
 
+              {/* Rate */}
               <div className="rounded-2xl bg-slate-50 p-5">
-                <Clock3 className="text-slate-700" size={22} />
+                <Clock3
+                  className="text-slate-700"
+                  size={22}
+                />
 
-                <p className="mt-3 text-sm text-slate-500">Rate</p>
+                <p className="mt-3 text-sm text-slate-500">
+                  Rate
+                </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
                   ${room.hourlyRate} / hour
                 </p>
               </div>
+
+              {/* Booking Count */}
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <CalendarCheck
+                  className="text-slate-700"
+                  size={22}
+                />
+
+                <p className="mt-3 text-sm text-slate-500">
+                  Bookings
+                </p>
+
+                <p className="mt-1 font-semibold text-slate-900">
+                  {room.bookingCount || 0}
+                </p>
+              </div>
             </div>
 
-            {/* Amenities */}
+            {/* =================================================
+                AMENITIES
+            ================================================= */}
+
             <div className="mt-10">
               <h2 className="text-2xl font-bold text-slate-900">
                 Amenities
@@ -171,7 +382,7 @@ function RoomDetails() {
                     >
                       <CheckCircle2
                         size={20}
-                        className="shrink-0 text-slate-700"
+                        className="shrink-0 text-blue-600"
                       />
 
                       <span className="font-medium text-slate-700">
@@ -187,7 +398,10 @@ function RoomDetails() {
               )}
             </div>
 
-            {/* Booking */}
+            {/* =================================================
+                BOOKING
+            ================================================= */}
+
             <div className="mt-10 border-t border-slate-200 pt-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -196,22 +410,112 @@ function RoomDetails() {
                   </h2>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Choose your date and time slot to reserve this study
-                    space.
+                    Choose your date and time slot to
+                    reserve this study space.
                   </p>
                 </div>
 
-                <Link
-                  to={`/rooms/${room._id}/book`}
-                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Book This Room
-                </Link>
+                {userLoading ? (
+                  <div className="h-12 w-36 animate-pulse rounded-xl bg-slate-200" />
+                ) : user ? (
+                  <Link
+                    to={`/rooms/${room._id}/book`}
+                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-blue-600"
+                  >
+                    Book This Room
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    state={{
+                      from: `/rooms/${room._id}/book`,
+                    }}
+                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-blue-600"
+                  >
+                    Login to Book
+                  </Link>
+                )}
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* =====================================================
+          DELETE CONFIRMATION MODAL
+      ===================================================== */}
+
+      {deleteOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <AlertTriangle size={22} />
+                </div>
+
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Delete Room?
+                  </h2>
+
+                  <p className="text-sm text-slate-500">
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteOpen(false)
+                }
+                disabled={deleting}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <X size={19} />
+              </button>
+            </div>
+
+            {/* Room */}
+            <div className="mt-6 rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">
+                You are about to delete:
+              </p>
+
+              <p className="mt-1 font-bold text-slate-900">
+                {room.roomName}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteOpen(false)
+                }
+                disabled={deleting}
+                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDeleteRoom}
+                disabled={deleting}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleting
+                  ? "Deleting..."
+                  : "Yes, Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

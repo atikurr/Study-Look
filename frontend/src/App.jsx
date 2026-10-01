@@ -9,9 +9,9 @@ import MainLayout from "./layouts/MainLayout";
 // Public Pages
 import Home from "./pages/Home";
 import Rooms from "./pages/Rooms";
+import RoomDetails from "./pages/RoomDetails";
 
 // Protected Pages
-import RoomDetails from "./pages/RoomDetails";
 import AddRoom from "./pages/AddRoom";
 import MyListings from "./pages/MyListings";
 import EditRoom from "./pages/EditRoom";
@@ -33,13 +33,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* =====================================
             MAIN LAYOUT
         ====================================== */}
 
         <Route element={<MainLayout />}>
-
           {/* ===================================
               PUBLIC PAGES
           =================================== */}
@@ -50,25 +48,21 @@ function App() {
             element={<Home />}
           />
 
-          {/* Rooms */}
+          {/* All Rooms */}
           <Route
             path="/rooms"
             element={<Rooms />}
           />
 
+          {/* Room Details - PUBLIC */}
+          <Route
+            path="/rooms/:id"
+            element={<RoomDetails />}
+          />
+
           {/* ===================================
               PROTECTED PAGES
           =================================== */}
-
-          {/* Room Details */}
-          <Route
-            path="/rooms/:id"
-            element={
-              <ProtectedRoute>
-                <RoomDetails />
-              </ProtectedRoute>
-            }
-          />
 
           {/* Booking */}
           <Route
@@ -128,7 +122,6 @@ function App() {
             path="*"
             element={<NotFound />}
           />
-
         </Route>
 
         {/* =====================================
@@ -152,7 +145,6 @@ function App() {
           path="/auth/callback"
           element={<AuthCallback />}
         />
-
       </Routes>
     </BrowserRouter>
   );
