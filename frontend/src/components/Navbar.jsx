@@ -15,10 +15,6 @@ import {
 import { authClient } from "../lib/auth-client";
 import toast from "react-hot-toast";
 
-/* ==========================================
-   PROFILE AVATAR
-========================================== */
-
 function ProfileAvatar({ user, size = "small" }) {
   const [imageError, setImageError] = useState(false);
 
@@ -32,6 +28,7 @@ function ProfileAvatar({ user, size = "small" }) {
       ? "h-11 w-11 text-sm"
       : "h-9 w-9 text-sm";
 
+  // No profile image / broken image
   if (!imageUrl || imageError) {
     return (
       <div
@@ -52,24 +49,25 @@ function ProfileAvatar({ user, size = "small" }) {
   );
 }
 
-/* ==========================================
-   NAVBAR
-========================================== */
-
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // ==========================================
+  // STATE
+  // ==========================================
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const profileRef = useRef(null);
 
-  /* ==========================================
-     MOBILE SCROLL LOCK
-  ========================================== */
+  // ==========================================
+  // LOCK BODY SCROLL WHEN MOBILE MENU IS OPEN
+  // ==========================================
 
   useEffect(() => {
     if (mobileOpen) {
@@ -83,9 +81,9 @@ function Navbar() {
     };
   }, [mobileOpen]);
 
-  /* ==========================================
-     GET CURRENT USER
-  ========================================== */
+  // ==========================================
+  // GET CURRENT USER
+  // ==========================================
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -119,9 +117,9 @@ function Navbar() {
     getCurrentUser();
   }, [location.pathname]);
 
-  /* ==========================================
-     CLOSE PROFILE DROPDOWN
-  ========================================== */
+  // ==========================================
+  // CLOSE PROFILE DROPDOWN ON OUTSIDE CLICK
+  // ==========================================
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -146,18 +144,36 @@ function Navbar() {
     };
   }, []);
 
-  /* ==========================================
-     CLOSE MOBILE MENU ON ROUTE CHANGE
-  ========================================== */
+  // ==========================================
+  // CLOSE MENUS WHEN ROUTE CHANGES
+  // ==========================================
 
-  useEffect(() => {
-  setMobileOpen(false);
-  setProfileOpen(false);
-}, [location.pathname]);
+ useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      profileRef.current &&
+      !profileRef.current.contains(event.target)
+    ) {
+      setProfileOpen(false);
+    }
+  };
 
-  /* ==========================================
-     LOGOUT
-  ========================================== */
+  document.addEventListener(
+    "mousedown",
+    handleClickOutside
+  );
+
+  return () => {
+    document.removeEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+  };
+}, []);
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
 
   const handleLogout = async () => {
     try {
@@ -171,7 +187,7 @@ function Navbar() {
         );
       }
 
-      // JWT logout
+      // Assignment JWT logout
       const response = await fetch(
         "http://localhost:5000/api/auth/logout",
         {
@@ -189,19 +205,23 @@ function Navbar() {
       setProfileOpen(false);
       setMobileOpen(false);
 
-      toast.success("Logged out successfully");
+      toast.success("Logged out successfully", {
+        id: "logout-success",
+      });
 
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
 
-      toast.error("Something went wrong");
+      toast.error("Something went wrong", {
+        id: "logout-error",
+      });
     }
   };
 
-  /* ==========================================
-     ACTIVE ROUTE
-  ========================================== */
+  // ==========================================
+  // ACTIVE NAVIGATION
+  // ==========================================
 
   const isActive = (path) => {
     if (path === "/") {
@@ -210,10 +230,6 @@ function Navbar() {
 
     return location.pathname.startsWith(path);
   };
-
-  /* ==========================================
-     NAV LINK STYLE
-  ========================================== */
 
   const navLinkClass = (path) => {
     const active = isActive(path);
@@ -227,18 +243,21 @@ function Navbar() {
     ].join(" ");
   };
 
+  // ==========================================
+  // NAVBAR
+  // ==========================================
+
   return (
     <>
-      {/* ==========================================
+      {/* ======================================
           DESKTOP / MAIN NAVBAR
-      ========================================== */}
+      ====================================== */}
 
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-19 items-center justify-between">
-            {/* ======================================
-                LOGO
-            ====================================== */}
+
+            {/* LOGO */}
 
             <Link
               to="/"
@@ -255,11 +274,13 @@ function Navbar() {
               />
             </Link>
 
-            {/* ======================================
+            {/* ==================================
                 DESKTOP NAVIGATION
-            ====================================== */}
+            ================================== */}
 
             <nav className="hidden items-center gap-1 lg:flex">
+              {/* Home */}
+
               <Link
                 to="/"
                 className={navLinkClass("/")}
@@ -267,6 +288,8 @@ function Navbar() {
                 <HomeIcon size={17} />
                 Home
               </Link>
+
+              {/* Rooms */}
 
               <Link
                 to="/rooms"
@@ -276,6 +299,8 @@ function Navbar() {
                 Rooms
               </Link>
 
+              {/* About */}
+
               <Link
                 to="/about"
                 className={navLinkClass("/about")}
@@ -283,6 +308,8 @@ function Navbar() {
                 <Info size={17} />
                 About
               </Link>
+
+              {/* Private Navigation */}
 
               {!loading && user && (
                 <>
@@ -317,9 +344,9 @@ function Navbar() {
               )}
             </nav>
 
-            {/* ======================================
-                DESKTOP RIGHT SIDE
-            ====================================== */}
+            {/* ==================================
+                DESKTOP AUTH / PROFILE
+            ================================== */}
 
             <div className="hidden items-center gap-3 md:flex">
               {!loading && user ? (
@@ -361,9 +388,7 @@ function Navbar() {
                     />
                   </button>
 
-                  {/* ==================================
-                      PROFILE DROPDOWN
-                  ================================== */}
+                  {/* Profile Dropdown */}
 
                   {profileOpen && (
                     <div className="absolute right-0 top-full z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
@@ -398,9 +423,7 @@ function Navbar() {
                           }
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
                         >
-                          <ClipboardList
-                            size={17}
-                          />
+                          <ClipboardList size={17} />
                           My Listings
                         </Link>
 
@@ -411,11 +434,11 @@ function Navbar() {
                           }
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
                         >
-                          <CalendarDays
-                            size={17}
-                          />
+                          <CalendarDays size={17} />
                           My Bookings
                         </Link>
+
+                        {/* Logout */}
 
                         <button
                           type="button"
@@ -452,15 +475,13 @@ function Navbar() {
               )}
             </div>
 
-            {/* ======================================
+            {/* ==================================
                 MOBILE MENU BUTTON
-            ====================================== */}
+            ================================== */}
 
             <button
               type="button"
-              onClick={() =>
-                setMobileOpen(true)
-              }
+              onClick={() => setMobileOpen(true)}
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
               aria-label="Open navigation menu"
             >
@@ -470,12 +491,13 @@ function Navbar() {
         </div>
       </header>
 
-      {/* ==========================================
-          MOBILE FULLSCREEN MENU
-      ========================================== */}
+      {/* ======================================
+          MOBILE MENU
+      ====================================== */}
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
+
           {/* Mobile Header */}
 
           <div className="flex h-19 items-center justify-between border-b border-slate-200 px-4 sm:px-6">
@@ -493,6 +515,8 @@ function Navbar() {
               />
             </Link>
 
+            {/* Close */}
+
             <button
               type="button"
               onClick={() =>
@@ -505,10 +529,11 @@ function Navbar() {
             </button>
           </div>
 
-          {/* Mobile Content */}
+          {/* Mobile Navigation */}
 
           <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
             <nav className="flex flex-col gap-2">
+
               {/* Home */}
 
               <Link
@@ -548,10 +573,12 @@ function Navbar() {
                 About
               </Link>
 
-              {/* Logged In Links */}
+              {/* Logged In */}
 
               {!loading && user ? (
                 <>
+                  {/* Add Room */}
+
                   <Link
                     to="/add-room"
                     onClick={() =>
@@ -564,6 +591,8 @@ function Navbar() {
                     <PlusCircle size={20} />
                     Add Room
                   </Link>
+
+                  {/* My Listings */}
 
                   <Link
                     to="/my-listings"
@@ -578,6 +607,8 @@ function Navbar() {
                     My Listings
                   </Link>
 
+                  {/* My Bookings */}
+
                   <Link
                     to="/my-bookings"
                     onClick={() =>
@@ -591,7 +622,7 @@ function Navbar() {
                     My Bookings
                   </Link>
 
-                  {/* Mobile User Profile */}
+                  {/* Mobile User */}
 
                   <div className="mt-6 border-t border-slate-200 pt-6">
                     <div className="flex items-center gap-3 px-2">
@@ -611,6 +642,8 @@ function Navbar() {
                       </div>
                     </div>
 
+                    {/* Mobile Logout */}
+
                     <button
                       type="button"
                       onClick={handleLogout}
@@ -622,7 +655,9 @@ function Navbar() {
                   </div>
                 </>
               ) : (
-                /* Guest Buttons */
+                /* ==================================
+                   MOBILE LOGIN / REGISTER
+                ================================== */
 
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6">
                   <Link
