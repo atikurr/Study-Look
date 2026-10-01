@@ -43,10 +43,10 @@ function RoomDetails() {
         const [roomResponse, userResponse] =
           await Promise.all([
             fetch(
-              `http://localhost:5000/api/rooms/${id}`
+              `/api/rooms/${id}`
             ),
             fetch(
-              "http://localhost:5000/api/auth/me",
+              "/api/auth/me",
               {
                 credentials: "include",
               }
@@ -142,7 +142,7 @@ function RoomDetails() {
       );
 
       const response = await fetch(
-        `http://localhost:5000/api/rooms/${room._id}`,
+        `/api/rooms/${room._id}`,
         {
           method: "DELETE",
           credentials: "include",

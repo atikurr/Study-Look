@@ -89,7 +89,7 @@ function Navbar() {
     const getCurrentUser = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/auth/me",
+          "/api/auth/me",
           {
             credentials: "include",
           }
@@ -189,7 +189,7 @@ function Navbar() {
 
       // Assignment JWT logout
       const response = await fetch(
-        "http://localhost:5000/api/auth/logout",
+        "/api/auth/logout",
         {
           method: "POST",
           credentials: "include",

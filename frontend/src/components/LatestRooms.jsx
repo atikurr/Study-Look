@@ -19,7 +19,7 @@ function LatestRooms() {
         setError("");
 
         const response = await fetch(
-          "http://localhost:5000/api/rooms/latest"
+          "/api/rooms/latest"
         );
 
         if (!response.ok) {

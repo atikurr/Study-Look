@@ -67,7 +67,7 @@ function AddRoom() {
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:5000/api/rooms",
+        "/api/rooms",
         {
           method: "POST",
           headers: {

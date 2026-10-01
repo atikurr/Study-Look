@@ -31,7 +31,7 @@ function MyBookings() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/api/bookings/my-bookings",
+        "/api/bookings/my-bookings",
         {
           credentials: "include",
         }
@@ -135,7 +135,7 @@ function MyBookings() {
       );
 
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${cancelBookingId}/cancel`,
+        `/api/bookings/${cancelBookingId}/cancel`,
         {
           method: "PATCH",
           credentials: "include",

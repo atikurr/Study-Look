@@ -82,7 +82,7 @@ function BookingPage() {
         setError("");
 
         const response = await fetch(
-          `http://localhost:5000/api/rooms/${id}`
+          `/api/rooms/${id}`
         );
 
         const data = await response.json();
@@ -239,7 +239,7 @@ function BookingPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/bookings",
+        "/api/bookings",
         {
           method: "POST",
           credentials: "include",

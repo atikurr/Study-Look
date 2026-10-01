@@ -267,8 +267,8 @@ function Rooms() {
         const queryString = params.toString();
 
         const url = queryString
-          ? `http://localhost:5000/api/rooms?${queryString}`
-          : "http://localhost:5000/api/rooms";
+          ? `/api/rooms?${queryString}`
+          : "/api/rooms";
 
         const response = await fetch(url, {
           signal: controller.signal,

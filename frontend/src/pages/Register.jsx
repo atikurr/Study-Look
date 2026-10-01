@@ -88,7 +88,7 @@ function Register() {
 
       // Create assignment JWT
       const tokenResponse = await fetch(
-        "http://localhost:5000/api/auth/token",
+        "/api/auth/token",
         {
           method: "POST",
           credentials: "include",

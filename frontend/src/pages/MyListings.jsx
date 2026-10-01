@@ -22,7 +22,7 @@ function MyListings() {
     const loadListings = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/rooms/my-listings",
+          "/api/rooms/my-listings",
           {
             credentials: "include",
           }
@@ -76,7 +76,7 @@ function MyListings() {
       setDeletingId(roomId);
 
       const response = await fetch(
-        `http://localhost:5000/api/rooms/${roomId}`,
+        `/api/rooms/${roomId}`,
         {
           method: "DELETE",
           credentials: "include",

@@ -32,7 +32,7 @@ function EditRoom() {
     const loadRoom = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/rooms/${id}`
+          `/api/rooms/${id}`
         );
 
         const data = await response.json();
@@ -107,7 +107,7 @@ function EditRoom() {
       setSaving(true);
 
       const response = await fetch(
-        `http://localhost:5000/api/rooms/${id}`,
+        `/api/rooms/${id}`,
         {
           method: "PUT",
           headers: {
