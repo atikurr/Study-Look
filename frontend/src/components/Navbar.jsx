@@ -80,6 +80,28 @@ function Navbar() {
   }, [mobileOpen]);
 
   // ==========================================
+  // CLOSE MOBILE MENU WITH ESC KEY
+  // ==========================================
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setMobileOpen(false);
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, []);
+
+  // ==========================================
   // GET CURRENT USER
   // ==========================================
 
