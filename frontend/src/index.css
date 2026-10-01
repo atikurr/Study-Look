@@ -12,7 +12,7 @@ body {
   margin: 0;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  background: #f1f5f9;
+  background: #eef2f6;
   color: #0f172a;
 }
 
@@ -32,6 +32,6 @@ a {
 }
 
 ::selection {
-  background: #dbeafe;
+  background: #bfdbfe;
   color: #0f172a;
 }

@@ -3,67 +3,99 @@ import {
   Mail,
   MapPin,
   Phone,
+  ArrowUpRight,
 } from "lucide-react";
 
 function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-          
-          {/* Brand */}
-          <div>
+    <footer className="bg-slate-950 text-white">
+      {/* ==========================================
+          TOP ACCENT
+      ========================================== */}
+
+      <div className="h-1 w-full bg-blue-600" />
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* ==========================================
+            MAIN FOOTER
+        ========================================== */}
+
+        <div className="grid gap-12 border-b border-white/10 py-14 text-center sm:py-16 md:grid-cols-2 md:text-left lg:grid-cols-4 lg:gap-10">
+          {/* ========================================
+              BRAND
+          ======================================== */}
+
+          <div className="md:col-span-2 lg:col-span-1">
             <Link
               to="/"
-              className="text-2xl font-bold tracking-tight text-slate-900"
+              className="inline-flex items-center gap-2"
             >
-              StudyNook
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold shadow-lg shadow-blue-600/20">
+                S
+              </div>
+
+              <span className="text-xl font-bold tracking-tight text-white">
+                Study<span className="text-blue-500">Nook</span>
+              </span>
             </Link>
 
-            <p className="mt-4 max-w-sm leading-7 text-slate-500">
-              A simple and reliable platform for finding and booking
-              comfortable study spaces.
+            <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-slate-400 md:mx-0">
+              A simple and reliable platform for
+              finding and booking comfortable study
+              spaces.
             </p>
 
             {/* Social Links */}
-            <div className="mt-6 flex items-center gap-3">
+
+            <div className="mt-6 flex justify-center gap-2.5 md:justify-start">
+              {/* Facebook */}
+
               <a
                 href="#"
                 aria-label="Facebook"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-slate-900 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
                 f
               </a>
 
+              {/* Instagram */}
+
               <a
                 href="#"
                 aria-label="Instagram"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-slate-900 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[10px] font-bold tracking-tight text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
-                ig
+                IG
               </a>
+
+              {/* LinkedIn */}
 
               <a
                 href="#"
                 aria-label="LinkedIn"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-slate-900 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[11px] font-bold text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
                 in
               </a>
 
+              {/* X */}
+
               <a
                 href="#"
                 aria-label="X"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-sm font-bold text-slate-600 transition hover:bg-slate-900 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs font-semibold text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
                 X
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* ========================================
+              QUICK LINKS
+          ======================================== */}
+
           <div>
-            <h3 className="font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-white">
               Quick Links
             </h3>
 
@@ -71,7 +103,7 @@ function Footer() {
               <li>
                 <Link
                   to="/"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   Home
                 </Link>
@@ -80,7 +112,7 @@ function Footer() {
               <li>
                 <Link
                   to="/rooms"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   Rooms
                 </Link>
@@ -88,8 +120,17 @@ function Footer() {
 
               <li>
                 <Link
+                  to="/about"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                >
+                  About
+                </Link>
+              </li>
+
+              <li>
+                <Link
                   to="/login"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   Login
                 </Link>
@@ -98,7 +139,7 @@ function Footer() {
               <li>
                 <Link
                   to="/register"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   Register
                 </Link>
@@ -106,9 +147,12 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Resources */}
+          {/* ========================================
+              RESOURCES
+          ======================================== */}
+
           <div>
-            <h3 className="font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-white">
               Resources
             </h3>
 
@@ -116,7 +160,7 @@ function Footer() {
               <li>
                 <Link
                   to="/rooms"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   Browse Rooms
                 </Link>
@@ -125,7 +169,7 @@ function Footer() {
               <li>
                 <Link
                   to="/add-room"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   List a Room
                 </Link>
@@ -134,7 +178,7 @@ function Footer() {
               <li>
                 <Link
                   to="/my-bookings"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   My Bookings
                 </Link>
@@ -143,7 +187,7 @@ function Footer() {
               <li>
                 <Link
                   to="/my-listings"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   My Listings
                 </Link>
@@ -151,47 +195,56 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* ========================================
+              CONTACT
+          ======================================== */}
+
           <div>
-            <h3 className="font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-white">
               Contact Us
             </h3>
 
             <div className="mt-5 space-y-4">
-              <div className="flex items-start gap-3">
+              {/* Location */}
+
+              <div className="flex flex-col items-center gap-2 md:flex-row md:items-start">
                 <MapPin
-                  size={19}
-                  className="mt-1 shrink-0 text-slate-600"
+                  size={17}
+                  className="mt-0.5 shrink-0 text-blue-500"
                 />
 
-                <p className="leading-6 text-slate-500">
+                <p className="text-sm leading-6 text-slate-400">
                   Dhaka, Bangladesh
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* Email */}
+
+              <div className="flex flex-col items-center gap-2 md:flex-row">
                 <Mail
-                  size={19}
-                  className="shrink-0 text-slate-600"
+                  size={17}
+                  className="shrink-0 text-blue-500"
                 />
 
                 <a
                   href="mailto:hello@studynook.com"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   hello@studynook.com
                 </a>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* Phone */}
+
+              <div className="flex flex-col items-center gap-2 md:flex-row">
                 <Phone
-                  size={19}
-                  className="shrink-0 text-slate-600"
+                  size={17}
+                  className="shrink-0 text-blue-500"
                 />
 
                 <a
                   href="tel:+8801000000000"
-                  className="text-slate-500 transition hover:text-slate-900"
+                  className="text-sm text-slate-400 transition-colors hover:text-white"
                 >
                   +880 1000-000000
                 </a>
@@ -200,26 +253,38 @@ function Footer() {
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} StudyNook. All rights reserved.
+        {/* ==========================================
+            BOTTOM FOOTER
+        ========================================== */}
+
+        <div className="flex flex-col items-center gap-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
+          <p className="text-xs text-slate-500">
+            © {new Date().getFullYear()} StudyNook.
+            All rights reserved.
           </p>
 
-          <div className="flex gap-5">
+          <div className="flex items-center gap-5">
             <a
               href="#"
-              className="transition hover:text-slate-900"
+              className="text-xs text-slate-500 transition-colors hover:text-white"
             >
               Privacy Policy
             </a>
 
             <a
               href="#"
-              className="transition hover:text-slate-900"
+              className="text-xs text-slate-500 transition-colors hover:text-white"
             >
               Terms of Service
             </a>
+
+            <Link
+              to="/"
+              aria-label="Back to home"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-200 hover:bg-white hover:text-slate-950"
+            >
+              <ArrowUpRight size={14} />
+            </Link>
           </div>
         </div>
       </div>

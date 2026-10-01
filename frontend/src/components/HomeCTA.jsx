@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 function HomeCTA() {
   return (
-    <section className="bg-slate-100 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <section className="bg-[#e5eaf0] px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <motion.div
         initial={{
           opacity: 0,
@@ -19,26 +19,32 @@ function HomeCTA() {
           amount: 0.2,
         }}
         transition={{
-          duration: 0.8,
+          duration: 0.75,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="relative mx-auto max-w-6xl overflow-hidden rounded-[24px] border border-slate-300/80 bg-[#eef4f2] shadow-sm"
+        className="relative mx-auto max-w-6xl overflow-hidden rounded-[26px] border border-slate-300/80 bg-[#f3f7f5] shadow-sm"
       >
-        {/* Base Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#eaf2f5] via-[#f8faf8] to-[#edf7f1]" />
+        {/* ==========================================
+            BASE
+        ========================================== */}
 
-        {/* Grid */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#edf5f8] via-[#f8faf9] to-[#eef7f1]" />
+
+        {/* ==========================================
+            GRID
+        ========================================== */}
+
         <div
-          className="absolute inset-0 opacity-80"
+          className="absolute inset-0 opacity-70"
           style={{
             backgroundImage: `
               linear-gradient(
-                rgba(148,163,184,0.12) 1px,
+                rgba(100,116,139,0.11) 1px,
                 transparent 1px
               ),
               linear-gradient(
                 90deg,
-                rgba(148,163,184,0.12) 1px,
+                rgba(100,116,139,0.11) 1px,
                 transparent 1px
               )
             `,
@@ -46,82 +52,104 @@ function HomeCTA() {
           }}
         />
 
-        {/* Soft Blue Area */}
-        <motion.div
-          animate={{
-            opacity: [0.45, 0.7, 0.45],
-            scale: [1, 1.05, 1],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -left-20 -top-24 h-72 w-72 rounded-full bg-blue-200/35 blur-3xl"
-        />
+        {/* ==========================================
+            SOFT BLUE GLOW
+        ========================================== */}
 
-        {/* Soft Green Area */}
         <motion.div
           animate={{
-            opacity: [0.4, 0.65, 0.4],
-            scale: [1, 1.06, 1],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-emerald-200/30 blur-3xl"
-        />
-
-        {/* Bottom Glow */}
-        <motion.div
-          animate={{
-            opacity: [0.25, 0.45, 0.25],
+            x: [0, 20, 0],
+            y: [0, -10, 0],
+            opacity: [0.3, 0.5, 0.3],
           }}
           transition={{
             duration: 9,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute bottom-[-140px] left-1/3 h-80 w-80 rounded-full bg-sky-200/25 blur-3xl"
+          className="absolute -left-28 -top-28 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl"
         />
 
-        {/* Top Right Circle */}
+        {/* ==========================================
+            SOFT GREEN GLOW
+        ========================================== */}
+
         <motion.div
           animate={{
-            rotate: [0, 8, 0],
+            x: [0, -18, 0],
+            y: [0, 12, 0],
+            opacity: [0.25, 0.45, 0.25],
+          }}
+          transition={{
+            duration: 11,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -right-28 -top-24 h-80 w-80 rounded-full bg-emerald-200/35 blur-3xl"
+        />
+
+        {/* ==========================================
+            BOTTOM GLOW
+        ========================================== */}
+
+        <motion.div
+          animate={{
+            opacity: [0.2, 0.35, 0.2],
+            scale: [1, 1.08, 1],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -bottom-40 left-1/3 h-80 w-80 rounded-full bg-sky-200/30 blur-3xl"
+        />
+
+        {/* ==========================================
+            TOP RIGHT SHAPE
+        ========================================== */}
+
+        <motion.div
+          animate={{
+            rotate: [0, 6, 0],
           }}
           transition={{
             duration: 12,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[24px] border-white/75"
+          className="absolute -right-12 -top-12 h-44 w-44 rounded-full border-[24px] border-white/75"
         />
 
-        {/* Bottom Left Circle */}
+        {/* ==========================================
+            BOTTOM LEFT SHAPE
+        ========================================== */}
+
         <motion.div
           animate={{
-            rotate: [0, -8, 0],
+            rotate: [0, -6, 0],
           }}
           transition={{
             duration: 14,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute -bottom-12 -left-10 h-40 w-40 rounded-full border-[22px] border-white/70"
+          className="absolute -bottom-14 -left-12 h-44 w-44 rounded-full border-[23px] border-white/70"
         />
 
-        {/* Content */}
-        <div className="relative z-10 flex min-h-[400px] items-center justify-center px-6 py-16 sm:min-h-[440px] sm:px-10">
+        {/* ==========================================
+            CONTENT
+        ========================================== */}
+
+        <div className="relative z-10 flex min-h-[390px] items-center justify-center px-6 py-16 sm:min-h-[430px] sm:px-10">
           <div className="mx-auto max-w-3xl text-center">
 
             {/* Label */}
+
             <motion.div
               initial={{
                 opacity: 0,
-                y: 15,
+                y: 12,
               }}
               whileInView={{
                 opacity: 1,
@@ -129,7 +157,7 @@ function HomeCTA() {
               }}
               viewport={{ once: true }}
               transition={{
-                delay: 0.15,
+                delay: 0.1,
                 duration: 0.5,
               }}
               className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/85 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600 shadow-sm backdrop-blur-sm"
@@ -143,10 +171,11 @@ function HomeCTA() {
             </motion.div>
 
             {/* Heading */}
+
             <motion.h2
               initial={{
                 opacity: 0,
-                y: 25,
+                y: 22,
               }}
               whileInView={{
                 opacity: 1,
@@ -154,8 +183,8 @@ function HomeCTA() {
               }}
               viewport={{ once: true }}
               transition={{
-                delay: 0.25,
-                duration: 0.7,
+                delay: 0.2,
+                duration: 0.65,
                 ease: [0.22, 1, 0.36, 1],
               }}
               className="mt-6 text-4xl font-bold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[52px]"
@@ -168,10 +197,11 @@ function HomeCTA() {
             </motion.h2>
 
             {/* Description */}
+
             <motion.p
               initial={{
                 opacity: 0,
-                y: 18,
+                y: 15,
               }}
               whileInView={{
                 opacity: 1,
@@ -179,8 +209,8 @@ function HomeCTA() {
               }}
               viewport={{ once: true }}
               transition={{
-                delay: 0.4,
-                duration: 0.6,
+                delay: 0.35,
+                duration: 0.55,
               }}
               className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600 sm:text-base"
             >
@@ -190,11 +220,12 @@ function HomeCTA() {
             </motion.p>
 
             {/* Button */}
+
             <motion.div
               initial={{
                 opacity: 0,
-                y: 18,
-                scale: 0.96,
+                y: 15,
+                scale: 0.97,
               }}
               whileInView={{
                 opacity: 1,
@@ -203,8 +234,8 @@ function HomeCTA() {
               }}
               viewport={{ once: true }}
               transition={{
-                delay: 0.52,
-                duration: 0.55,
+                delay: 0.48,
+                duration: 0.5,
               }}
               className="mt-7"
             >
