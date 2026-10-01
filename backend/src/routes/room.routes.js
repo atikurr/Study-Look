@@ -1,5 +1,6 @@
 import express from "express";
 import Room from "../models/Room.js";
+import Booking from "../models/Booking.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -528,16 +529,16 @@ router.delete(
       }
 
       // ------------------------------------------
-      // Prevent deleting room with bookings
+      // Remove every booking that belongs to this
+      // room so no orphan bookings are left behind
       // ------------------------------------------
-      if (room.bookingCount > 0) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "This room cannot be deleted because it has active bookings.",
-        });
-      }
+      await Booking.deleteMany({
+        roomId: room._id,
+      });
 
+      // ------------------------------------------
+      // Delete the room
+      // ------------------------------------------
       await Room.findByIdAndDelete(
         req.params.id
       );
