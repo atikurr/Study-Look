@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CalendarDays,
@@ -18,16 +18,14 @@ function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [cancelBookingId, setCancelBookingId] =
-    useState(null);
-  const [cancelLoading, setCancelLoading] =
-    useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // ==============================
   // FETCH BOOKINGS
   // ==============================
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -48,24 +46,22 @@ function MyBookings() {
       }
 
       setBookings(
-        Array.isArray(data.bookings)
-          ? data.bookings
-          : []
+        Array.isArray(data.bookings) ? data.bookings : []
       );
     } catch (error) {
       console.error(error);
+
       setError(
-        error.message ||
-          "Failed to load your bookings."
+        error.message || "Failed to load your bookings."
       );
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [fetchBookings]);
 
   // ==============================
   // FORMAT DATE
@@ -74,9 +70,7 @@ function MyBookings() {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
 
-    const date = new Date(
-      `${dateString}T00:00:00`
-    );
+    const date = new Date(`${dateString}T00:00:00`);
 
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -92,14 +86,38 @@ function MyBookings() {
   const formatTime = (time) => {
     if (!time) return "";
 
-    const [hourString, minute] =
-      time.split(":");
+    const [hourString, minute] = time.split(":");
 
     const hour = Number(hourString);
     const suffix = hour >= 12 ? "PM" : "AM";
     const displayHour = hour % 12 || 12;
 
     return `${displayHour}:${minute} ${suffix}`;
+  };
+
+  // ==============================
+  // CHECK IF BOOKING CAN BE CANCELLED
+  // ==============================
+
+  const canCancelBooking = (booking) => {
+    if (booking.status !== "confirmed") {
+      return false;
+    }
+
+    if (!booking.bookingDate) {
+      return false;
+    }
+
+    // Today's date in local timezone
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const bookingDate = new Date(
+      `${booking.bookingDate}T00:00:00`
+    );
+    bookingDate.setHours(0, 0, 0, 0);
+
+    return bookingDate >= today;
   };
 
   // ==============================
@@ -130,8 +148,7 @@ function MyBookings() {
 
       if (!response.ok || !data.success) {
         toast.error(
-          data.message ||
-            "Failed to cancel booking"
+          data.message || "Failed to cancel booking"
         );
         return;
       }
@@ -147,9 +164,7 @@ function MyBookings() {
         )
       );
 
-      toast.success(
-        "Booking cancelled successfully"
-      );
+      toast.success("Booking cancelled successfully");
 
       setCancelBookingId(null);
     } catch (error) {
@@ -174,23 +189,21 @@ function MyBookings() {
           <div className="h-8 w-48 animate-pulse rounded bg-slate-200" />
 
           <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            {Array.from({ length: 5 }).map(
-              (_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 border-b border-slate-100 p-4 last:border-0"
-                >
-                  <div className="h-16 w-20 animate-pulse rounded-xl bg-slate-200" />
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 border-b border-slate-100 p-4 last:border-0"
+              >
+                <div className="h-16 w-20 animate-pulse rounded-xl bg-slate-200" />
 
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
-                    <div className="h-3 w-64 animate-pulse rounded bg-slate-100" />
-                  </div>
-
-                  <div className="h-8 w-20 animate-pulse rounded-full bg-slate-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
+                  <div className="h-3 w-64 animate-pulse rounded bg-slate-100" />
                 </div>
-              )
-            )}
+
+                <div className="h-8 w-20 animate-pulse rounded-full bg-slate-100" />
+              </div>
+            ))}
           </div>
         </div>
       </main>
@@ -252,7 +265,7 @@ function MyBookings() {
 
             <button
               onClick={fetchBookings}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
             >
               <RefreshCw size={15} />
               Try Again
@@ -303,16 +316,14 @@ function MyBookings() {
               <span>Date & Time</span>
               <span>Location</span>
               <span>Status</span>
-              <span className="text-right">
-                Action
-              </span>
+              <span className="text-right">Action</span>
             </div>
 
             {bookings.map((booking) => {
               const room = booking.roomId;
-
               const isCancelled =
                 booking.status === "cancelled";
+              const canCancel = canCancelBooking(booking);
 
               return (
                 <div
@@ -381,6 +392,7 @@ function MyBookings() {
                           size={14}
                           className="text-blue-500"
                         />
+
                         {formatDate(
                           booking.bookingDate
                         )}
@@ -407,6 +419,7 @@ function MyBookings() {
                           size={14}
                           className="text-slate-400"
                         />
+
                         {room?.floor || "N/A"}
                       </div>
 
@@ -439,7 +452,7 @@ function MyBookings() {
                         ${booking.totalCost}
                       </span>
 
-                      {!isCancelled && (
+                      {canCancel && (
                         <button
                           onClick={() =>
                             setCancelBookingId(
@@ -557,7 +570,7 @@ function MyBookings() {
                         ${booking.totalCost}
                       </span>
 
-                      {!isCancelled ? (
+                      {canCancel ? (
                         <button
                           onClick={() =>
                             setCancelBookingId(
