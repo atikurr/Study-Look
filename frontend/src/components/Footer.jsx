@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   Mail,
   MapPin,
@@ -8,283 +7,276 @@ import {
 
 function Footer() {
   return (
-    <footer className="bg-slate-950 text-white">
-      {/* ==========================================
-          TOP ACCENT
-      ========================================== */}
+    <footer className="border-t border-blue-500 bg-[#020617] text-slate-300">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+          {/* Brand */}
+          <div>
+            <div className="mb-5">
+              <img
+                src="/assets/studyNook.png"
+                alt="StudyNook"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
 
-      <div className="h-1 w-full bg-blue-600" />
-
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* ==========================================
-            MAIN FOOTER
-        ========================================== */}
-
-        <div className="grid gap-12 border-b border-white/10 py-14 text-center sm:py-16 md:grid-cols-2 md:text-left lg:grid-cols-4 lg:gap-10">
-          {/* ========================================
-              BRAND
-          ======================================== */}
-
-          <div className="md:col-span-2 lg:col-span-1">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2"
-            >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold shadow-lg shadow-blue-600/20">
-                S
-              </div>
-
-              <span className="text-xl font-bold tracking-tight text-white">
-                Study<span className="text-blue-500">Nook</span>
-              </span>
-            </Link>
-
-            <p className="mx-auto mt-4 max-w-sm text-sm leading-6 text-slate-400 md:mx-0">
-              A simple and reliable platform for
-              finding and booking comfortable study
-              spaces.
+            <p className="max-w-xs text-sm leading-6 text-slate-400">
+              A simple and reliable platform for finding
+              and booking comfortable study spaces.
             </p>
 
-            {/* Social Links */}
-
-            <div className="mt-6 flex justify-center gap-2.5 md:justify-start">
+            {/* Social Icons */}
+            <div className="mt-6 flex items-center gap-3">
               {/* Facebook */}
-
               <a
                 href="#"
                 aria-label="Facebook"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-sm font-bold text-slate-400 transition hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
-                f
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 fill-current"
+                >
+                  <path d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V3.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V10H7.3v3h2.8v8h3.4Z" />
+                </svg>
               </a>
 
               {/* Instagram */}
-
               <a
                 href="#"
                 aria-label="Instagram"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[10px] font-bold tracking-tight text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-400 transition hover:border-pink-500 hover:bg-pink-600 hover:text-white"
               >
-                IG
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 fill-none stroke-current"
+                  strokeWidth="1.8"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="5"
+                  />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle
+                    cx="17.5"
+                    cy="6.5"
+                    r="1"
+                    className="fill-current stroke-none"
+                  />
+                </svg>
               </a>
 
               {/* LinkedIn */}
-
               <a
                 href="#"
                 aria-label="LinkedIn"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[11px] font-bold text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-slate-400 transition hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
-                in
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4 w-4 fill-current"
+                >
+                  <path d="M6.5 8.2A1.7 1.7 0 1 0 6.5 4.8a1.7 1.7 0 0 0 0 3.4ZM5 9.5h3v9H5v-9Zm5 0h2.9v1.2h.1c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.6v4.8h-3v-4.3c0-1 0-2.4-1.5-2.4s-1.7 1.1-1.7 2.3v4.4H10v-9Z" />
+                </svg>
               </a>
 
               {/* X */}
-
               <a
                 href="#"
                 aria-label="X"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs font-semibold text-slate-400 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-900 text-sm font-semibold text-slate-400 transition hover:border-slate-400 hover:bg-slate-700 hover:text-white"
               >
-                X
+                𝕏
               </a>
             </div>
           </div>
 
-          {/* ========================================
-              QUICK LINKS
-          ======================================== */}
-
+          {/* Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold text-white">
+            <h3 className="mb-6 text-sm font-semibold text-white">
               Quick Links
             </h3>
 
-            <ul className="mt-5 space-y-3">
+            <ul className="space-y-4 text-sm">
               <li>
-                <Link
-                  to="/"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/"
+                  className="transition hover:text-blue-400"
                 >
                   Home
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/rooms"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/rooms"
+                  className="transition hover:text-blue-400"
                 >
                   Rooms
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/about"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/about"
+                  className="transition hover:text-blue-400"
                 >
                   About
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/login"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/login"
+                  className="transition hover:text-blue-400"
                 >
                   Login
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/register"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/register"
+                  className="transition hover:text-blue-400"
                 >
                   Register
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* ========================================
-              RESOURCES
-          ======================================== */}
-
+          {/* Resources */}
           <div>
-            <h3 className="text-sm font-semibold text-white">
+            <h3 className="mb-6 text-sm font-semibold text-white">
               Resources
             </h3>
 
-            <ul className="mt-5 space-y-3">
+            <ul className="space-y-4 text-sm">
               <li>
-                <Link
-                  to="/rooms"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/rooms"
+                  className="transition hover:text-blue-400"
                 >
                   Browse Rooms
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/add-room"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/add-room"
+                  className="transition hover:text-blue-400"
                 >
                   List a Room
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/my-bookings"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/my-bookings"
+                  className="transition hover:text-blue-400"
                 >
                   My Bookings
-                </Link>
+                </a>
               </li>
 
               <li>
-                <Link
-                  to="/my-listings"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                <a
+                  href="/my-listings"
+                  className="transition hover:text-blue-400"
                 >
                   My Listings
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* ========================================
-              CONTACT
-          ======================================== */}
-
+          {/* Contact */}
           <div>
-            <h3 className="text-sm font-semibold text-white">
+            <h3 className="mb-6 text-sm font-semibold text-white">
               Contact Us
             </h3>
 
-            <div className="mt-5 space-y-4">
-              {/* Location */}
-
-              <div className="flex flex-col items-center gap-2 md:flex-row md:items-start">
+            <ul className="space-y-5 text-sm">
+              <li className="flex items-start gap-3">
                 <MapPin
-                  size={17}
+                  size={18}
                   className="mt-0.5 shrink-0 text-blue-500"
                 />
 
-                <p className="text-sm leading-6 text-slate-400">
+                <span>
                   Dhaka, Bangladesh
-                </p>
-              </div>
+                </span>
+              </li>
 
-              {/* Email */}
-
-              <div className="flex flex-col items-center gap-2 md:flex-row">
+              <li className="flex items-center gap-3">
                 <Mail
-                  size={17}
+                  size={18}
                   className="shrink-0 text-blue-500"
                 />
 
                 <a
                   href="mailto:hello@studynook.com"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                  className="transition hover:text-blue-400"
                 >
                   hello@studynook.com
                 </a>
-              </div>
+              </li>
 
-              {/* Phone */}
-
-              <div className="flex flex-col items-center gap-2 md:flex-row">
+              <li className="flex items-center gap-3">
                 <Phone
-                  size={17}
+                  size={18}
                   className="shrink-0 text-blue-500"
                 />
 
                 <a
-                  href="tel:+8801000000000"
-                  className="text-sm text-slate-400 transition-colors hover:text-white"
+                  href="tel:01560017344"
+                  className="transition hover:text-blue-400"
                 >
-                  +880 1000-000000
+                  01560017344
                 </a>
-              </div>
-            </div>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* ==========================================
-            BOTTOM FOOTER
-        ========================================== */}
-
-        <div className="flex flex-col items-center gap-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
+        {/* Bottom */}
+        <div className="mt-12 flex flex-col gap-5 border-t border-slate-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} StudyNook.
-            All rights reserved.
+            © 2026 StudyNook. All rights reserved.
           </p>
 
           <div className="flex items-center gap-5">
             <a
               href="#"
-              className="text-xs text-slate-500 transition-colors hover:text-white"
+              className="text-xs text-slate-500 transition hover:text-slate-300"
             >
               Privacy Policy
             </a>
 
             <a
               href="#"
-              className="text-xs text-slate-500 transition-colors hover:text-white"
+              className="text-xs text-slate-500 transition hover:text-slate-300"
             >
               Terms of Service
             </a>
 
-            <Link
-              to="/"
-              aria-label="Back to home"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-all duration-200 hover:bg-white hover:text-slate-950"
+            <a
+              href="#"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 text-slate-400 transition hover:border-blue-500 hover:text-blue-400"
+              aria-label="Back to top"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }}
             >
-              <ArrowUpRight size={14} />
-            </Link>
+              <ArrowUpRight size={15} />
+            </a>
           </div>
         </div>
       </div>

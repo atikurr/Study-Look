@@ -15,6 +15,47 @@ import {
 import { authClient } from "../lib/auth-client";
 import toast from "react-hot-toast";
 
+/* ==========================================
+   PROFILE AVATAR
+========================================== */
+
+function ProfileAvatar({ user, size = "small" }) {
+  const [imageError, setImageError] = useState(false);
+
+  const imageUrl = user?.image || user?.photoURL || "";
+
+  const initial =
+    user?.name?.charAt(0)?.toUpperCase() || "U";
+
+  const sizeClass =
+    size === "large"
+      ? "h-11 w-11 text-sm"
+      : "h-9 w-9 text-sm";
+
+  if (!imageUrl || imageError) {
+    return (
+      <div
+        className={`flex shrink-0 items-center justify-center rounded-full bg-slate-900 font-semibold text-white ${sizeClass}`}
+      >
+        {initial}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl}
+      alt={user?.name || "User"}
+      className={`${sizeClass} shrink-0 rounded-full object-cover`}
+      onError={() => setImageError(true)}
+    />
+  );
+}
+
+/* ==========================================
+   NAVBAR
+========================================== */
+
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,7 +67,10 @@ function Navbar() {
 
   const profileRef = useRef(null);
 
-  // Background scroll lock when mobile menu is open
+  /* ==========================================
+     MOBILE SCROLL LOCK
+  ========================================== */
+
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
@@ -39,22 +83,33 @@ function Navbar() {
     };
   }, [mobileOpen]);
 
-  // Get current logged-in user
+  /* ==========================================
+     GET CURRENT USER
+  ========================================== */
+
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/me", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          "http://localhost:5000/api/auth/me",
+          {
+            credentials: "include",
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
-          setUser(data.user);
+
+          setUser(data?.user || null);
         } else {
           setUser(null);
         }
       } catch (error) {
-        console.error("Failed to get current user:", error);
+        console.error(
+          "Failed to get current user:",
+          error
+        );
+
         setUser(null);
       } finally {
         setLoading(false);
@@ -64,7 +119,10 @@ function Navbar() {
     getCurrentUser();
   }, [location.pathname]);
 
-  // Close profile dropdown when clicking outside
+  /* ==========================================
+     CLOSE PROFILE DROPDOWN
+  ========================================== */
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -75,22 +133,52 @@ function Navbar() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
     };
   }, []);
 
-  // Logout
+  /* ==========================================
+     CLOSE MOBILE MENU ON ROUTE CHANGE
+  ========================================== */
+
+  useEffect(() => {
+  setMobileOpen(false);
+  setProfileOpen(false);
+}, [location.pathname]);
+
+  /* ==========================================
+     LOGOUT
+  ========================================== */
+
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
+      // Better Auth logout
+      try {
+        await authClient.signOut();
+      } catch (error) {
+        console.error(
+          "Better Auth logout error:",
+          error
+        );
+      }
 
-      const response = await fetch("http://localhost:5000/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      // JWT logout
+      const response = await fetch(
+        "http://localhost:5000/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         toast.error("Logout failed");
@@ -106,44 +194,59 @@ function Navbar() {
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
+
       toast.error("Something went wrong");
     }
   };
 
-  // Check active route
+  /* ==========================================
+     ACTIVE ROUTE
+  ========================================== */
+
   const isActive = (path) => {
     if (path === "/") {
       return location.pathname === "/";
     }
+
     return location.pathname.startsWith(path);
   };
 
-  // Navigation link styles
+  /* ==========================================
+     NAV LINK STYLE
+  ========================================== */
+
   const navLinkClass = (path) => {
     const active = isActive(path);
 
-    return `
-      flex items-center gap-3 rounded-xl px-4 py-3
-      text-base font-semibold transition-all duration-200
-      ${
-        active
-          ? "bg-blue-50 text-blue-600 shadow-sm"
-          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-      }
-    `;
+    return [
+      "flex items-center gap-2.5 rounded-xl px-4 py-2.5",
+      "text-sm font-semibold transition-all duration-200",
+      active
+        ? "bg-blue-50 text-blue-600 shadow-sm"
+        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+    ].join(" ");
   };
 
   return (
     <>
+      {/* ==========================================
+          DESKTOP / MAIN NAVBAR
+      ========================================== */}
+
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Main Navbar */}
-          <div className="flex h-[76px] items-center justify-between">
-            {/* Logo */}
+          <div className="flex h-19 items-center justify-between">
+            {/* ======================================
+                LOGO
+            ====================================== */}
+
             <Link
               to="/"
-              className="flex items-center"
-              onClick={() => setMobileOpen(false)}
+              className="flex shrink-0 items-center"
+              onClick={() => {
+                setMobileOpen(false);
+                setProfileOpen(false);
+              }}
             >
               <img
                 src="/assets/studyNook.png"
@@ -152,36 +255,61 @@ function Navbar() {
               />
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* ======================================
+                DESKTOP NAVIGATION
+            ====================================== */}
+
             <nav className="hidden items-center gap-1 lg:flex">
-              <Link to="/" className={navLinkClass("/")}>
+              <Link
+                to="/"
+                className={navLinkClass("/")}
+              >
                 <HomeIcon size={17} />
                 Home
               </Link>
 
-              <Link to="/rooms" className={navLinkClass("/rooms")}>
+              <Link
+                to="/rooms"
+                className={navLinkClass("/rooms")}
+              >
                 <DoorOpen size={17} />
                 Rooms
               </Link>
 
-              <Link to="/about" className={navLinkClass("/about")}>
+              <Link
+                to="/about"
+                className={navLinkClass("/about")}
+              >
                 <Info size={17} />
                 About
               </Link>
 
               {!loading && user && (
                 <>
-                  <Link to="/add-room" className={navLinkClass("/add-room")}>
+                  <Link
+                    to="/add-room"
+                    className={navLinkClass("/add-room")}
+                  >
                     <PlusCircle size={17} />
                     Add Room
                   </Link>
 
-                  <Link to="/my-listings" className={navLinkClass("/my-listings")}>
+                  <Link
+                    to="/my-listings"
+                    className={navLinkClass(
+                      "/my-listings"
+                    )}
+                  >
                     <ClipboardList size={17} />
                     My Listings
                   </Link>
 
-                  <Link to="/my-bookings" className={navLinkClass("/my-bookings")}>
+                  <Link
+                    to="/my-bookings"
+                    className={navLinkClass(
+                      "/my-bookings"
+                    )}
+                  >
                     <CalendarDays size={17} />
                     My Bookings
                   </Link>
@@ -189,30 +317,34 @@ function Navbar() {
               )}
             </nav>
 
-            {/* Desktop Right Side */}
+            {/* ======================================
+                DESKTOP RIGHT SIDE
+            ====================================== */}
+
             <div className="hidden items-center gap-3 md:flex">
               {!loading && user ? (
-                <div ref={profileRef} className="relative">
+                <div
+                  ref={profileRef}
+                  className="relative"
+                >
+                  {/* Profile Button */}
+
                   <button
                     type="button"
-                    onClick={() => setProfileOpen((previous) => !previous)}
-                    className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition ${
+                    onClick={() =>
+                      setProfileOpen(
+                        (previous) => !previous
+                      )
+                    }
+                    className={[
+                      "flex items-center gap-2 rounded-xl border px-2.5 py-1.5",
+                      "transition-all duration-200",
                       profileOpen
                         ? "border-blue-200 bg-blue-50"
-                        : "border-slate-200 hover:bg-slate-50"
-                    }`}
+                        : "border-slate-200 bg-white hover:bg-slate-50",
+                    ].join(" ")}
                   >
-                    {user.image || user.photoURL ? (
-                      <img
-                        src={user.image || user.photoURL}
-                        alt={user.name || "User"}
-                        className="h-9 w-9 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-                        {user.name?.charAt(0)?.toUpperCase() || "U"}
-                      </div>
-                    )}
+                    <ProfileAvatar user={user} />
 
                     <span className="max-w-28 truncate text-sm font-semibold text-slate-700">
                       {user.name || "User"}
@@ -220,33 +352,35 @@ function Navbar() {
 
                     <ChevronDown
                       size={16}
-                      className={`text-slate-500 transition ${
-                        profileOpen ? "rotate-180" : ""
-                      }`}
+                      className={[
+                        "text-slate-500 transition-transform duration-200",
+                        profileOpen
+                          ? "rotate-180"
+                          : "",
+                      ].join(" ")}
                     />
                   </button>
 
-                  {/* Profile Dropdown */}
+                  {/* ==================================
+                      PROFILE DROPDOWN
+                  ================================== */}
+
                   {profileOpen && (
-                    <div className="absolute right-0 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl z-50">
+                    <div className="absolute right-0 top-full z-50 mt-3 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                      {/* User Info */}
+
                       <div className="border-b border-slate-100 px-4 py-4">
                         <div className="flex items-center gap-3">
-                          {user.image || user.photoURL ? (
-                            <img
-                              src={user.image || user.photoURL}
-                              alt={user.name || "User"}
-                              className="h-11 w-11 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">
-                              {user.name?.charAt(0)?.toUpperCase() || "U"}
-                            </div>
-                          )}
+                          <ProfileAvatar
+                            user={user}
+                            size="large"
+                          />
 
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-slate-900">
                               {user.name || "User"}
                             </p>
+
                             <p className="truncate text-sm text-slate-500">
                               {user.email}
                             </p>
@@ -254,22 +388,32 @@ function Navbar() {
                         </div>
                       </div>
 
+                      {/* Dropdown Links */}
+
                       <div className="p-2">
                         <Link
                           to="/my-listings"
-                          onClick={() => setProfileOpen(false)}
+                          onClick={() =>
+                            setProfileOpen(false)
+                          }
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
                         >
-                          <ClipboardList size={17} />
+                          <ClipboardList
+                            size={17}
+                          />
                           My Listings
                         </Link>
 
                         <Link
                           to="/my-bookings"
-                          onClick={() => setProfileOpen(false)}
+                          onClick={() =>
+                            setProfileOpen(false)
+                          }
                           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
                         >
-                          <CalendarDays size={17} />
+                          <CalendarDays
+                            size={17}
+                          />
                           My Bookings
                         </Link>
 
@@ -287,12 +431,16 @@ function Navbar() {
                 </div>
               ) : (
                 <>
+                  {/* Login */}
+
                   <Link
                     to="/login"
                     className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
                     Login
                   </Link>
+
+                  {/* Register */}
 
                   <Link
                     to="/register"
@@ -304,10 +452,15 @@ function Navbar() {
               )}
             </div>
 
-            {/* Mobile Menu Open Button */}
+            {/* ======================================
+                MOBILE MENU BUTTON
+            ====================================== */}
+
             <button
               type="button"
-              onClick={() => setMobileOpen(true)}
+              onClick={() =>
+                setMobileOpen(true)
+              }
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden"
               aria-label="Open navigation menu"
             >
@@ -317,14 +470,20 @@ function Navbar() {
         </div>
       </header>
 
-      {/* Fullscreen Mobile Menu Overlay */}
+      {/* ==========================================
+          MOBILE FULLSCREEN MENU
+      ========================================== */}
+
       {mobileOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">
-          {/* Mobile Header Bar */}
-          <div className="flex h-[76px] items-center justify-between border-b border-slate-200 px-4 sm:px-6">
+          {/* Mobile Header */}
+
+          <div className="flex h-19 items-center justify-between border-b border-slate-200 px-4 sm:px-6">
             <Link
               to="/"
-              onClick={() => setMobileOpen(false)}
+              onClick={() =>
+                setMobileOpen(false)
+              }
               className="flex items-center"
             >
               <img
@@ -336,7 +495,9 @@ function Navbar() {
 
             <button
               type="button"
-              onClick={() => setMobileOpen(false)}
+              onClick={() =>
+                setMobileOpen(false)
+              }
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-50"
               aria-label="Close navigation menu"
             >
@@ -344,42 +505,61 @@ function Navbar() {
             </button>
           </div>
 
-          {/* Mobile Menu Content Scroll Area */}
+          {/* Mobile Content */}
+
           <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
             <nav className="flex flex-col gap-2">
+              {/* Home */}
+
               <Link
                 to="/"
-                onClick={() => setMobileOpen(false)}
+                onClick={() =>
+                  setMobileOpen(false)
+                }
                 className={navLinkClass("/")}
               >
                 <HomeIcon size={20} />
                 Home
               </Link>
 
+              {/* Rooms */}
+
               <Link
                 to="/rooms"
-                onClick={() => setMobileOpen(false)}
+                onClick={() =>
+                  setMobileOpen(false)
+                }
                 className={navLinkClass("/rooms")}
               >
                 <DoorOpen size={20} />
                 Rooms
               </Link>
 
+              {/* About */}
+
               <Link
                 to="/about"
-                onClick={() => setMobileOpen(false)}
+                onClick={() =>
+                  setMobileOpen(false)
+                }
                 className={navLinkClass("/about")}
               >
                 <Info size={20} />
                 About
               </Link>
 
+              {/* Logged In Links */}
+
               {!loading && user ? (
                 <>
                   <Link
                     to="/add-room"
-                    onClick={() => setMobileOpen(false)}
-                    className={navLinkClass("/add-room")}
+                    onClick={() =>
+                      setMobileOpen(false)
+                    }
+                    className={navLinkClass(
+                      "/add-room"
+                    )}
                   >
                     <PlusCircle size={20} />
                     Add Room
@@ -387,8 +567,12 @@ function Navbar() {
 
                   <Link
                     to="/my-listings"
-                    onClick={() => setMobileOpen(false)}
-                    className={navLinkClass("/my-listings")}
+                    onClick={() =>
+                      setMobileOpen(false)
+                    }
+                    className={navLinkClass(
+                      "/my-listings"
+                    )}
                   >
                     <ClipboardList size={20} />
                     My Listings
@@ -396,32 +580,31 @@ function Navbar() {
 
                   <Link
                     to="/my-bookings"
-                    onClick={() => setMobileOpen(false)}
-                    className={navLinkClass("/my-bookings")}
+                    onClick={() =>
+                      setMobileOpen(false)
+                    }
+                    className={navLinkClass(
+                      "/my-bookings"
+                    )}
                   >
                     <CalendarDays size={20} />
                     My Bookings
                   </Link>
 
-                  {/* User Profile Footer */}
+                  {/* Mobile User Profile */}
+
                   <div className="mt-6 border-t border-slate-200 pt-6">
                     <div className="flex items-center gap-3 px-2">
-                      {user.image || user.photoURL ? (
-                        <img
-                          src={user.image || user.photoURL}
-                          alt={user.name || "User"}
-                          className="h-11 w-11 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">
-                          {user.name?.charAt(0)?.toUpperCase() || "U"}
-                        </div>
-                      )}
+                      <ProfileAvatar
+                        user={user}
+                        size="large"
+                      />
 
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-slate-900">
                           {user.name || "User"}
                         </p>
+
                         <p className="truncate text-sm text-slate-500">
                           {user.email}
                         </p>
@@ -439,11 +622,14 @@ function Navbar() {
                   </div>
                 </>
               ) : (
-                /* Guest Action Buttons */
+                /* Guest Buttons */
+
                 <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6">
                   <Link
                     to="/login"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() =>
+                      setMobileOpen(false)
+                    }
                     className="w-full rounded-xl border border-slate-200 py-3 text-center font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
                     Login
@@ -451,7 +637,9 @@ function Navbar() {
 
                   <Link
                     to="/register"
-                    onClick={() => setMobileOpen(false)}
+                    onClick={() =>
+                      setMobileOpen(false)
+                    }
                     className="w-full rounded-xl bg-blue-600 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
                   >
                     Register

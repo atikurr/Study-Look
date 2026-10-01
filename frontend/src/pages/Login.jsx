@@ -15,10 +15,13 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ProtectedRoute থেকে previous page
+  // ProtectedRoute previous page
   const from = location.state?.from || "/";
 
-  // Email / Password Login
+  // ==========================================
+  // EMAIL / PASSWORD LOGIN
+  // ==========================================
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -61,19 +64,30 @@ function Login() {
         return;
       }
 
-      toast.success("Login successful!");
+      // Prevent duplicate success toast
+      toast.success("Login successful!", {
+        id: "login-success",
+      });
 
-      // Previous protected page এ ফিরে যাবে
-      navigate(from, { replace: true });
+      // Previous protected page
+      navigate(from, {
+        replace: true,
+      });
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Something went wrong. Please try again.");
+
+      toast.error(
+        "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Google Login
+  // ==========================================
+  // GOOGLE LOGIN
+  // ==========================================
+
   const handleGoogleLogin = async () => {
     try {
       await authClient.signIn.social({
@@ -82,11 +96,15 @@ function Login() {
       });
     } catch (error) {
       console.error("Google login error:", error);
+
       toast.error("Google login failed");
     }
   };
 
-  // Apple Login
+  // ==========================================
+  // APPLE LOGIN
+  // ==========================================
+
   const handleAppleLogin = async () => {
     try {
       await authClient.signIn.social({
@@ -95,6 +113,7 @@ function Login() {
       });
     } catch (error) {
       console.error("Apple login error:", error);
+
       toast.error(
         "Apple login is not configured yet."
       );
@@ -103,14 +122,11 @@ function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-
       <div className="w-full max-w-[450px]">
-
         <form
           onSubmit={handleLogin}
           className="flex flex-col gap-4 rounded-3xl bg-white p-7 shadow-lg sm:p-8"
         >
-
           {/* Header */}
           <div className="mb-2 text-center">
             <h1 className="text-3xl font-bold text-slate-900">
@@ -122,20 +138,13 @@ function Login() {
             </p>
           </div>
 
-          {/* Email Label */}
+          {/* Email */}
           <div className="flex flex-col gap-2">
             <label className="font-semibold text-slate-900">
               Email
             </label>
 
-            <div
-              className="
-                flex h-[50px] items-center rounded-xl
-                border-[1.5px] border-slate-200
-                px-3 transition
-                focus-within:border-blue-500
-              "
-            >
+            <div className="flex h-[50px] items-center rounded-xl border-[1.5px] border-slate-200 px-3 transition focus-within:border-blue-500">
               <Mail
                 size={20}
                 className="shrink-0 text-slate-500"
@@ -149,31 +158,18 @@ function Login() {
                 }
                 placeholder="Enter your Email"
                 required
-                className="
-                  ml-3 h-full w-full
-                  border-none bg-transparent
-                  text-sm text-slate-900
-                  outline-none
-                  placeholder:text-slate-400
-                "
+                className="ml-3 h-full w-full border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
               />
             </div>
           </div>
 
-          {/* Password Label */}
+          {/* Password */}
           <div className="flex flex-col gap-2">
             <label className="font-semibold text-slate-900">
               Password
             </label>
 
-            <div
-              className="
-                flex h-[50px] items-center rounded-xl
-                border-[1.5px] border-slate-200
-                px-3 transition
-                focus-within:border-blue-500
-              "
-            >
+            <div className="flex h-[50px] items-center rounded-xl border-[1.5px] border-slate-200 px-3 transition focus-within:border-blue-500">
               <Lock
                 size={20}
                 className="shrink-0 text-slate-500"
@@ -191,13 +187,7 @@ function Login() {
                 }
                 placeholder="Enter your Password"
                 required
-                className="
-                  ml-3 h-full w-full
-                  border-none bg-transparent
-                  pr-2 text-sm text-slate-900
-                  outline-none
-                  placeholder:text-slate-400
-                "
+                className="ml-3 h-full w-full border-none bg-transparent pr-2 text-sm text-slate-900 outline-none placeholder:text-slate-400"
               />
 
               <button
@@ -220,7 +210,6 @@ function Login() {
 
           {/* Remember Me */}
           <div className="flex items-center justify-between gap-3">
-
             <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
               <input
                 type="checkbox"
@@ -233,22 +222,13 @@ function Login() {
 
               <span>Remember me</span>
             </label>
-
           </div>
 
           {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
-            className="
-              mt-3 h-[50px] w-full rounded-xl
-              bg-slate-900
-              text-sm font-semibold text-white
-              transition
-              hover:bg-slate-800
-              disabled:cursor-not-allowed
-              disabled:opacity-50
-            "
+            className="mt-3 h-[50px] w-full rounded-xl bg-slate-900 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading
               ? "Signing In..."
@@ -258,7 +238,6 @@ function Login() {
           {/* Register */}
           <p className="text-center text-sm text-slate-600">
             Don't have an account?{" "}
-
             <button
               type="button"
               onClick={() => navigate("/register")}
@@ -281,23 +260,12 @@ function Login() {
 
           {/* Social Login */}
           <div className="grid grid-cols-2 gap-3">
-
             {/* Google */}
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="
-                flex h-[50px] items-center
-                justify-center gap-2 rounded-xl
-                border border-slate-200
-                bg-white
-                text-sm font-medium text-slate-700
-                transition
-                hover:border-blue-400
-                hover:bg-slate-50
-              "
+              className="flex h-[50px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition hover:border-blue-400 hover:bg-slate-50"
             >
-              {/* Google Icon */}
               <svg
                 width="20"
                 height="20"
@@ -331,18 +299,8 @@ function Login() {
             <button
               type="button"
               onClick={handleAppleLogin}
-              className="
-                flex h-[50px] items-center
-                justify-center gap-2 rounded-xl
-                border border-slate-200
-                bg-white
-                text-sm font-medium text-slate-700
-                transition
-                hover:border-slate-400
-                hover:bg-slate-50
-              "
+              className="flex h-12.5 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
             >
-              {/* Apple Icon */}
               <svg
                 width="20"
                 height="20"
@@ -355,7 +313,6 @@ function Login() {
 
               Apple
             </button>
-
           </div>
         </form>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { authClient } from "../lib/auth-client";
@@ -6,19 +6,43 @@ import { authClient } from "../lib/auth-client";
 function AuthCallback() {
   const navigate = useNavigate();
 
+  // Prevent duplicate execution
+  const hasProcessed = useRef(false);
+
   useEffect(() => {
+    if (hasProcessed.current) {
+      return;
+    }
+
+    hasProcessed.current = true;
+
     const createJWT = async () => {
       try {
-        // Check Better Auth session
-        const { data: session, error } = await authClient.getSession();
+        /* ==========================================
+           CHECK BETTER AUTH SESSION
+        ========================================== */
+
+        const {
+          data: session,
+          error,
+        } = await authClient.getSession();
 
         if (error || !session?.user) {
-          toast.error("Authentication failed");
-          navigate("/login");
+          toast.error("Authentication failed", {
+            id: "auth-failed",
+          });
+
+          navigate("/login", {
+            replace: true,
+          });
+
           return;
         }
 
-        // Create assignment JWT
+        /* ==========================================
+           CREATE ASSIGNMENT JWT
+        ========================================== */
+
         const response = await fetch(
           "http://localhost:5000/api/auth/token",
           {
@@ -30,17 +54,44 @@ function AuthCallback() {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          toast.error("JWT authentication failed");
-          navigate("/login");
+          toast.error("JWT authentication failed", {
+            id: "jwt-auth-failed",
+          });
+
+          navigate("/login", {
+            replace: true,
+          });
+
           return;
         }
 
-        toast.success("Login successful!");
+        /* ==========================================
+           SUCCESS
+        ========================================== */
 
-        navigate("/");
-      } catch {
-        toast.error("Something went wrong");
-        navigate("/login");
+        toast.success("Login successful!", {
+          id: "login-success",
+        });
+
+        navigate("/", {
+          replace: true,
+        });
+      } catch (error) {
+        console.error(
+          "Authentication callback error:",
+          error
+        );
+
+        toast.error(
+          "Something went wrong. Please try again.",
+          {
+            id: "auth-error",
+          }
+        );
+
+        navigate("/login", {
+          replace: true,
+        });
       }
     };
 
@@ -48,12 +99,18 @@ function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-300 border-t-slate-900 mx-auto"></div>
+        {/* Loading Spinner */}
 
-        <p className="mt-4 text-slate-600">
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900" />
+
+        <h1 className="mt-5 text-lg font-semibold text-slate-900">
           Completing authentication...
+        </h1>
+
+        <p className="mt-2 text-sm text-slate-500">
+          Please wait while we sign you in.
         </p>
       </div>
     </div>
