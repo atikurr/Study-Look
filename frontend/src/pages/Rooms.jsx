@@ -78,7 +78,9 @@ function FilterContent({
               <input
                 type="checkbox"
                 checked={selectedAmenities.includes(amenity)}
-                onChange={() => handleAmenityChange(amenity)}
+                onChange={() =>
+                  handleAmenityChange(amenity)
+                }
                 className="h-4 w-4 cursor-pointer accent-blue-600"
               />
 
@@ -109,7 +111,10 @@ function FilterContent({
             className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
           >
             {FLOOR_OPTIONS.map((item) => (
-              <option key={item.value} value={item.value}>
+              <option
+                key={item.value}
+                value={item.value}
+              >
                 {item.label}
               </option>
             ))}
@@ -150,7 +155,9 @@ function FilterContent({
                 type="number"
                 min="0"
                 value={minRate}
-                onChange={(e) => setMinRate(e.target.value)}
+                onChange={(e) =>
+                  setMinRate(e.target.value)
+                }
                 placeholder="0"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 pl-7 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
               />
@@ -176,7 +183,9 @@ function FilterContent({
                 type="number"
                 min="0"
                 value={maxRate}
-                onChange={(e) => setMaxRate(e.target.value)}
+                onChange={(e) =>
+                  setMaxRate(e.target.value)
+                }
                 placeholder="100"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 pl-7 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
               />
@@ -206,24 +215,16 @@ function FilterContent({
 
 function Rooms() {
   const [rooms, setRooms] = useState([]);
-
   const [search, setSearch] = useState("");
-
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
-
+  const [selectedAmenities, setSelectedAmenities] =
+    useState([]);
   const [floor, setFloor] = useState("all");
-
   const [minRate, setMinRate] = useState("");
-
   const [maxRate, setMaxRate] = useState("");
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
-
   const [mobileFiltersOpen, setMobileFiltersOpen] =
     useState(false);
-
   const [currentPage, setCurrentPage] = useState(1);
 
   /* =====================================================
@@ -240,12 +241,10 @@ function Rooms() {
 
         const params = new URLSearchParams();
 
-        // Search
         if (search.trim()) {
           params.set("search", search.trim());
         }
 
-        // Amenities
         if (selectedAmenities.length > 0) {
           params.set(
             "amenities",
@@ -253,17 +252,14 @@ function Rooms() {
           );
         }
 
-        // Floor
         if (floor !== "all") {
           params.set("floor", floor);
         }
 
-        // Minimum rate
         if (minRate !== "") {
           params.set("minRate", minRate);
         }
 
-        // Maximum rate
         if (maxRate !== "") {
           params.set("maxRate", maxRate);
         }
@@ -279,7 +275,9 @@ function Rooms() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch rooms");
+          throw new Error(
+            "Failed to fetch rooms"
+          );
         }
 
         const data = await response.json();
@@ -293,7 +291,8 @@ function Rooms() {
         } else {
           setRooms([]);
           setError(
-            data.message || "Failed to load rooms"
+            data.message ||
+              "Failed to load rooms"
           );
         }
       } catch (error) {
@@ -301,7 +300,10 @@ function Rooms() {
           return;
         }
 
-        console.error("Rooms fetch error:", error);
+        console.error(
+          "Rooms fetch error:",
+          error
+        );
 
         setError(
           "Unable to load study rooms right now."
@@ -398,10 +400,6 @@ function Rooms() {
     rooms.length / ROOMS_PER_PAGE
   );
 
-  /*
-    If filtering reduces the number of rooms while
-    user is on a later page, keep the page valid.
-  */
   const activePage =
     totalPages > 0
       ? Math.min(currentPage, totalPages)
@@ -419,7 +417,9 @@ function Rooms() {
   );
 
   const showingStart =
-    rooms.length === 0 ? 0 : startIndex + 1;
+    rooms.length === 0
+      ? 0
+      : startIndex + 1;
 
   const showingEnd = Math.min(
     endIndex,
@@ -445,9 +445,7 @@ function Rooms() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* =================================================
-          HEADER
-      ================================================= */}
+      {/* HEADER */}
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8">
@@ -474,9 +472,7 @@ function Rooms() {
         </div>
       </section>
 
-      {/* =================================================
-          SEARCH BAR
-      ================================================= */}
+      {/* SEARCH BAR */}
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
@@ -509,6 +505,7 @@ function Rooms() {
             </div>
 
             {/* Mobile Filters */}
+
             <button
               type="button"
               onClick={() =>
@@ -530,15 +527,11 @@ function Rooms() {
         </div>
       </section>
 
-      {/* =================================================
-          MAIN CONTENT
-      ================================================= */}
+      {/* MAIN CONTENT */}
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[250px_1fr]">
-          {/* =================================================
-              DESKTOP FILTER SIDEBAR
-          ================================================= */}
+          {/* DESKTOP FILTER SIDEBAR */}
 
           <aside className="hidden h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:block">
             <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
@@ -561,7 +554,9 @@ function Rooms() {
             </div>
 
             <FilterContent
-              selectedAmenities={selectedAmenities}
+              selectedAmenities={
+                selectedAmenities
+              }
               handleAmenityChange={
                 handleAmenityChange
               }
@@ -579,12 +574,11 @@ function Rooms() {
             />
           </aside>
 
-          {/* =================================================
-              RESULTS
-          ================================================= */}
+          {/* RESULTS */}
 
           <div className="min-w-0">
             {/* Results Header */}
+
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-slate-500">
                 {loading
@@ -606,7 +600,8 @@ function Rooms() {
               )}
             </div>
 
-            {/* Loading */}
+            {/* LOADING */}
+
             {loading && (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map(
@@ -632,7 +627,8 @@ function Rooms() {
               </div>
             )}
 
-            {/* Error */}
+            {/* ERROR */}
+
             {!loading && error && (
               <div className="rounded-2xl border border-red-100 bg-white px-6 py-16 text-center shadow-sm">
                 <h3 className="text-lg font-bold text-slate-900">
@@ -653,7 +649,8 @@ function Rooms() {
               </div>
             )}
 
-            {/* Rooms */}
+            {/* ROOMS */}
+
             {!loading &&
               !error &&
               currentRooms.length > 0 && (
@@ -667,10 +664,12 @@ function Rooms() {
                     ))}
                   </div>
 
-                  {/* Pagination */}
+                  {/* PAGINATION */}
+
                   {totalPages > 1 && (
                     <div className="mt-10 flex items-center justify-center gap-2">
                       {/* Previous */}
+
                       <button
                         type="button"
                         onClick={() =>
@@ -684,6 +683,7 @@ function Rooms() {
                       </button>
 
                       {/* Page Numbers */}
+
                       {Array.from(
                         { length: totalPages },
                         (_, index) => index + 1
@@ -705,6 +705,7 @@ function Rooms() {
                       ))}
 
                       {/* Next */}
+
                       <button
                         type="button"
                         onClick={() =>
@@ -723,7 +724,8 @@ function Rooms() {
                 </>
               )}
 
-            {/* Empty */}
+            {/* EMPTY */}
+
             {!loading &&
               !error &&
               rooms.length === 0 && (
@@ -756,9 +758,7 @@ function Rooms() {
         </div>
       </section>
 
-      {/* =================================================
-          MOBILE FILTER DRAWER
-      ================================================= */}
+      {/* MOBILE FILTER DRAWER */}
 
       {mobileFiltersOpen && (
         <>
@@ -793,7 +793,9 @@ function Rooms() {
             </div>
 
             <FilterContent
-              selectedAmenities={selectedAmenities}
+              selectedAmenities={
+                selectedAmenities
+              }
               handleAmenityChange={
                 handleAmenityChange
               }

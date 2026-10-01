@@ -29,84 +29,105 @@ function RoomDetails() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  /* =====================================================
-     FETCH ROOM
-  ===================================================== */
+  // =====================================================
+  // FETCH ROOM + CURRENT USER
+  // =====================================================
 
   useEffect(() => {
-    const fetchRoom = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
+        setUserLoading(true);
         setError("");
 
-        const response = await fetch(
-          `http://localhost:5000/api/rooms/${id}`
-        );
+        const [roomResponse, userResponse] =
+          await Promise.all([
+            fetch(
+              `http://localhost:5000/api/rooms/${id}`
+            ),
+            fetch(
+              "http://localhost:5000/api/auth/me",
+              {
+                credentials: "include",
+              }
+            ),
+          ]);
 
-        const data = await response.json();
+        // ==============================
+        // ROOM
+        // ==============================
 
-        if (!response.ok || !data.success) {
-          setError(data.message || "Room not found");
-          return;
+        const roomData =
+          await roomResponse.json();
+
+        if (!roomResponse.ok || !roomData.success) {
+          setError(
+            roomData.message || "Room not found"
+          );
+          setRoom(null);
+        } else {
+          setRoom(roomData.room);
         }
 
-        setRoom(data.room);
-      } catch (error) {
-        console.error("Failed to fetch room:", error);
+        // ==============================
+        // CURRENT USER
+        // ==============================
 
-        setError("Failed to load room details.");
-      } finally {
-        setLoading(false);
-      }
-    };
+        if (userResponse.ok) {
+          const userData =
+            await userResponse.json();
 
-    fetchRoom();
-  }, [id]);
-
-  /* =====================================================
-     FETCH CURRENT USER
-  ===================================================== */
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/auth/me",
-          {
-            credentials: "include",
+          if (userData.success && userData.user) {
+            setUser(userData.user);
+          } else {
+            setUser(null);
           }
-        );
-
-        if (!response.ok) {
-          setUser(null);
-          return;
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.user) {
-          setUser(data.user);
         } else {
           setUser(null);
         }
       } catch (error) {
         console.error(
-          "Failed to fetch current user:",
+          "Failed to load room details:",
           error
         );
 
+        setError(
+          "Failed to load room details."
+        );
+
+        setRoom(null);
         setUser(null);
       } finally {
+        setLoading(false);
         setUserLoading(false);
       }
     };
 
-    fetchCurrentUser();
-  }, []);
+    fetchData();
 
-  /* =====================================================
-     DELETE ROOM
-  ===================================================== */
+    // Initial data fetching intentionally updates state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+  }, [id]);
+
+  // =====================================================
+  // OWNER CHECK
+  // =====================================================
+
+  const userId = user?._id || user?.id;
+
+  const ownerId =
+    typeof room?.ownerId === "object"
+      ? room?.ownerId?._id
+      : room?.ownerId;
+
+  const isOwner =
+    userId &&
+    ownerId &&
+    String(userId) === String(ownerId);
+
+  // =====================================================
+  // DELETE ROOM
+  // =====================================================
 
   const handleDeleteRoom = async () => {
     if (!room) {
@@ -115,6 +136,10 @@ function RoomDetails() {
 
     try {
       setDeleting(true);
+
+      const loadingToast = toast.loading(
+        "Deleting room..."
+      );
 
       const response = await fetch(
         `http://localhost:5000/api/rooms/${room._id}`,
@@ -126,14 +151,19 @@ function RoomDetails() {
 
       const data = await response.json();
 
+      toast.dismiss(loadingToast);
+
       if (!response.ok || !data.success) {
         toast.error(
-          data.message || "Failed to delete room."
+          data.message ||
+            "Failed to delete room."
         );
         return;
       }
 
-      toast.success("Room deleted successfully.");
+      toast.success(
+        "Room deleted successfully."
+      );
 
       setDeleteOpen(false);
 
@@ -141,17 +171,22 @@ function RoomDetails() {
         replace: true,
       });
     } catch (error) {
-      console.error("Delete room error:", error);
+      console.error(
+        "Delete room error:",
+        error
+      );
 
-      toast.error("Something went wrong.");
+      toast.error(
+        "Something went wrong. Please try again."
+      );
     } finally {
       setDeleting(false);
     }
   };
 
-  /* =====================================================
-     LOADING
-  ===================================================== */
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   if (loading) {
     return (
@@ -161,9 +196,9 @@ function RoomDetails() {
     );
   }
 
-  /* =====================================================
-     ERROR
-  ===================================================== */
+  // =====================================================
+  // ERROR
+  // =====================================================
 
   if (error || !room) {
     return (
@@ -190,17 +225,13 @@ function RoomDetails() {
     );
   }
 
-  /* =====================================================
-     OWNER CHECK
-  ===================================================== */
-
-  const isOwner =
-    user && String(user.id) === String(room.ownerId);
-
   return (
     <div className="min-h-screen bg-slate-50">
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Back */}
+        {/* ==============================
+            BACK
+        ============================== */}
+
         <Link
           to="/rooms"
           className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
@@ -210,24 +241,35 @@ function RoomDetails() {
         </Link>
 
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          {/* =================================================
+          {/* ==============================
               IMAGE
-          ================================================= */}
+          ============================== */}
 
-          <div className="h-72 w-full overflow-hidden md:h-[420px]">
-            <img
-              src={room.image}
-              alt={room.roomName}
-              className="h-full w-full object-cover"
-            />
+          <div className="h-72 w-full overflow-hidden bg-slate-100 md:h-[420px]">
+            {room.image ? (
+              <img
+                src={room.image}
+                alt={room.roomName}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display =
+                    "none";
+                }}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-slate-400">
+                No image available
+              </div>
+            )}
           </div>
 
-          {/* =================================================
+          {/* ==============================
               CONTENT
-          ================================================= */}
+          ============================== */}
 
           <div className="p-6 md:p-10">
-            {/* Header */}
+            {/* HEADER */}
+
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
@@ -239,11 +281,13 @@ function RoomDetails() {
                 </h1>
 
                 <p className="mt-4 max-w-3xl leading-7 text-slate-600">
-                  {room.description}
+                  {room.description ||
+                    "No description available."}
                 </p>
               </div>
 
-              {/* Price */}
+              {/* PRICE */}
+
               <div className="shrink-0 rounded-2xl bg-slate-900 px-6 py-4 text-center text-white">
                 <p className="text-2xl font-bold">
                   ${room.hourlyRate}
@@ -255,9 +299,9 @@ function RoomDetails() {
               </div>
             </div>
 
-            {/* =================================================
+            {/* ==============================
                 OWNER ACTIONS
-            ================================================= */}
+            ============================== */}
 
             {isOwner && (
               <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -294,12 +338,13 @@ function RoomDetails() {
               </div>
             )}
 
-            {/* =================================================
+            {/* ==============================
                 ROOM INFO
-            ================================================= */}
+            ============================== */}
 
             <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-              {/* Floor */}
+              {/* FLOOR */}
+
               <div className="rounded-2xl bg-slate-50 p-5">
                 <MapPin
                   className="text-slate-700"
@@ -311,11 +356,12 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  {room.floor}
+                  {room.floor || "N/A"}
                 </p>
               </div>
 
-              {/* Capacity */}
+              {/* CAPACITY */}
+
               <div className="rounded-2xl bg-slate-50 p-5">
                 <Users
                   className="text-slate-700"
@@ -327,11 +373,12 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  {room.capacity} people
+                  {room.capacity || 0} people
                 </p>
               </div>
 
-              {/* Rate */}
+              {/* RATE */}
+
               <div className="rounded-2xl bg-slate-50 p-5">
                 <Clock3
                   className="text-slate-700"
@@ -343,11 +390,12 @@ function RoomDetails() {
                 </p>
 
                 <p className="mt-1 font-semibold text-slate-900">
-                  ${room.hourlyRate} / hour
+                  ${room.hourlyRate || 0} / hour
                 </p>
               </div>
 
-              {/* Booking Count */}
+              {/* BOOKING COUNT */}
+
               <div className="rounded-2xl bg-slate-50 p-5">
                 <CalendarCheck
                   className="text-slate-700"
@@ -364,9 +412,9 @@ function RoomDetails() {
               </div>
             </div>
 
-            {/* =================================================
+            {/* ==============================
                 AMENITIES
-            ================================================= */}
+            ============================== */}
 
             <div className="mt-10">
               <h2 className="text-2xl font-bold text-slate-900">
@@ -375,21 +423,23 @@ function RoomDetails() {
 
               {room.amenities?.length > 0 ? (
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-                  {room.amenities.map((amenity) => (
-                    <div
-                      key={amenity}
-                      className="flex items-center gap-3 rounded-xl border border-slate-200 p-4"
-                    >
-                      <CheckCircle2
-                        size={20}
-                        className="shrink-0 text-blue-600"
-                      />
+                  {room.amenities.map(
+                    (amenity, index) => (
+                      <div
+                        key={`${amenity}-${index}`}
+                        className="flex items-center gap-3 rounded-xl border border-slate-200 p-4"
+                      >
+                        <CheckCircle2
+                          size={20}
+                          className="shrink-0 text-blue-600"
+                        />
 
-                      <span className="font-medium text-slate-700">
-                        {amenity}
-                      </span>
-                    </div>
-                  ))}
+                        <span className="font-medium text-slate-700">
+                          {amenity}
+                        </span>
+                      </div>
+                    )
+                  )}
                 </div>
               ) : (
                 <p className="mt-4 text-slate-500">
@@ -398,9 +448,9 @@ function RoomDetails() {
               )}
             </div>
 
-            {/* =================================================
+            {/* ==============================
                 BOOKING
-            ================================================= */}
+            ============================== */}
 
             <div className="mt-10 border-t border-slate-200 pt-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -441,14 +491,15 @@ function RoomDetails() {
         </div>
       </main>
 
-      {/* =====================================================
+      {/* ==============================
           DELETE CONFIRMATION MODAL
-      ===================================================== */}
+      ============================== */}
 
       {deleteOpen && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            {/* Header */}
+            {/* HEADER */}
+
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600">
@@ -478,7 +529,8 @@ function RoomDetails() {
               </button>
             </div>
 
-            {/* Room */}
+            {/* ROOM */}
+
             <div className="mt-6 rounded-xl bg-slate-50 p-4">
               <p className="text-sm text-slate-500">
                 You are about to delete:
@@ -489,7 +541,8 @@ function RoomDetails() {
               </p>
             </div>
 
-            {/* Actions */}
+            {/* ACTIONS */}
+
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
